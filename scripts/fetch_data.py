@@ -225,7 +225,6 @@ def build_weekly_fred(data):
         "claims": ("ICSA", 0.001, 0),            # thousands
         "continuing": ("CCSA", 0.000001, 2),     # millions
         "fed_balance": ("WALCL", 0.000001, 2),   # $ trillions
-        "crude_stocks": ("WCESTUS1", 0.001, 1),  # million barrels
     }.items():
         try:
             r = series(sid, scale, dg)
