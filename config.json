@@ -1,0 +1,218 @@
+{
+  "title": "MARKET TERMINAL",
+  "watchlist": [
+    "JPM",
+    "XOM",
+    "AAPL",
+    "WMT",
+    "SHAK"
+  ],
+  "earnings_tickers": [
+    "AAPL",
+    "MSFT",
+    "NVDA",
+    "AMZN",
+    "GOOGL",
+    "META",
+    "JPM",
+    "XOM",
+    "WMT",
+    "SHAK"
+  ],
+  "fomc_dates_note": "Update each December from federalreserve.gov/monetarypolicy/fomccalendars.htm",
+  "fomc_dates": [
+    "2026-01-28",
+    "2026-03-18",
+    "2026-04-29",
+    "2026-06-17",
+    "2026-07-29",
+    "2026-09-16",
+    "2026-10-28",
+    "2026-12-09"
+  ],
+  "rss_feeds": [
+    {
+      "source": "WSJ Markets",
+      "url": "https://feeds.content.dowjones.io/public/rss/RSSMarketsMain"
+    },
+    {
+      "source": "CNBC",
+      "url": "https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=100003114"
+    },
+    {
+      "source": "MarketWatch",
+      "url": "https://feeds.content.dowjones.io/public/rss/mw_topstories"
+    }
+  ],
+  "reading_rail": {
+    "Daily": [
+      {
+        "name": "WSJ Markets",
+        "url": "https://www.wsj.com/finance"
+      },
+      {
+        "name": "Axios Macro",
+        "url": "https://www.axios.com/newsletters/axios-macro"
+      },
+      {
+        "name": "Bloomberg Markets",
+        "url": "https://www.bloomberg.com/markets"
+      },
+      {
+        "name": "Money Stuff (Levine)",
+        "url": "https://www.bloomberg.com/account/newsletters/money-stuff"
+      },
+      {
+        "name": "CME FedWatch",
+        "url": "https://www.cmegroup.com/markets/interest-rates/cme-fedwatch-tool.html"
+      }
+    ],
+    "Weekly": [
+      {
+        "name": "JPM Weekly Market Recap (PDF)",
+        "url": "https://am.jpmorgan.com/content/dam/jpm-am-aem/americas/us/en/insights/market-insights/wmr/weekly_market_recap.pdf"
+      },
+      {
+        "name": "JPM Weekly Market Recap (page)",
+        "url": "https://am.jpmorgan.com/us/en/asset-management/adv/insights/market-insights/market-updates/weekly-market-recap/"
+      },
+      {
+        "name": "Notes on the Week Ahead \u2014 David Kelly",
+        "url": "https://am.jpmorgan.com/us/en/asset-management/adv/insights/market-insights/market-updates/notes-on-the-week-ahead/"
+      },
+      {
+        "name": "Barron's",
+        "url": "https://www.barrons.com"
+      },
+      {
+        "name": "Economist \u2014 Finance",
+        "url": "https://www.economist.com/finance-and-economics"
+      },
+      {
+        "name": "The Transcript",
+        "url": "https://thetranscript.substack.com"
+      },
+      {
+        "name": "Odd Lots (podcast)",
+        "url": "https://www.bloomberg.com/oddlots"
+      },
+      {
+        "name": "LCD leveraged loan news",
+        "url": "https://pitchbook.com/news/lcd"
+      }
+    ],
+    "Monthly / Quarterly": [
+      {
+        "name": "JPM Guide to the Markets",
+        "url": "https://am.jpmorgan.com/us/en/asset-management/adv/insights/market-insights/guide-to-the-markets/"
+      },
+      {
+        "name": "Howard Marks memos",
+        "url": "https://www.oaktreecapital.com/insights/memos"
+      },
+      {
+        "name": "Damodaran \u2014 Musings",
+        "url": "https://aswathdamodaran.blogspot.com"
+      },
+      {
+        "name": "Damodaran \u2014 data & valuations",
+        "url": "https://pages.stern.nyu.edu/~adamodar/"
+      },
+      {
+        "name": "FOMC projections (SEP)",
+        "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+      },
+      {
+        "name": "Fed Financial Stability Report",
+        "url": "https://www.federalreserve.gov/publications/financial-stability-report.htm"
+      },
+      {
+        "name": "Shiller CAPE ratio",
+        "url": "https://www.multpl.com/shiller-pe"
+      },
+      {
+        "name": "FactSet Earnings Insight",
+        "url": "https://insight.factset.com/topic/earnings"
+      }
+    ],
+    "Primary sources": [
+      {
+        "name": "FOMC statements",
+        "url": "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"
+      },
+      {
+        "name": "Fed speakers",
+        "url": "https://www.federalreserve.gov/newsevents/calendar.htm"
+      },
+      {
+        "name": "BLS releases",
+        "url": "https://www.bls.gov/schedule/news_release/"
+      },
+      {
+        "name": "BEA releases",
+        "url": "https://www.bea.gov/news/schedule"
+      },
+      {
+        "name": "Treasury auctions",
+        "url": "https://www.treasurydirect.gov/auctions/upcoming/"
+      },
+      {
+        "name": "FRED",
+        "url": "https://fred.stlouisfed.org"
+      }
+    ]
+  },
+  "field_guide": {
+    "DGS10": "The 10-year Treasury yield \u2014 the price of money for the whole economy. It anchors mortgage rates, corporate borrowing costs, and every DCF discount rate. Rising = growth/inflation expectations or heavy supply; falling = flight to safety or rate-cut bets.",
+    "curve": "The yield curve plots Treasury yields by maturity. Upward-sloping is normal (you get paid to lend longer). Watch how it shifts vs. 1M and 1Y ago: bull steepening (short end falls) = cuts coming; bear steepening (long end rises) = inflation/supply worries.",
+    "2s10s": "10Y minus 2Y yield. Negative (inverted) has preceded most modern recessions, though with long and variable lags \u2014 and the re-steepening after inversion is historically the more dangerous phase. Direction matters more than any single reading.",
+    "3m10y": "10Y minus 3M yield \u2014 the Fed's preferred recession-signal spread. Inversion here means markets expect the Fed to be cutting within a year. Cleaner signal than 2s10s but noisier around policy turns.",
+    "fed_funds": "The Fed's policy target range \u2014 the rate banks pay overnight. Everything else prices off it. The level tells you where policy is; the FOMC countdown and FedWatch odds tell you where it's going.",
+    "SOFR": "Secured Overnight Financing Rate \u2014 the actual traded cost of overnight cash against Treasury collateral, and the replacement for LIBOR. If SOFR drifts above the Fed's range, funding markets are stressed (worth knowing before anyone else does).",
+    "breakevens": "Nominal Treasury yield minus TIPS yield = the market's implied average inflation over that horizon. If 10Y breakeven is ~2.3%, the bond market expects inflation near target. Breakevens moving up while the Fed holds = credibility question.",
+    "IG": "Investment-grade corporate spread (option-adjusted, over Treasuries). The extra yield for lending to quality companies. Tight = confidence and easy financing; widening IG is a slow, serious warning because IG moves last.",
+    "HY": "High-yield (junk) spread \u2014 the market's clearest real-time gauge of credit risk appetite and default expectations. Sub-300bps is historically tight (complacent); 500+ is stress; 800+ is crisis. Watch the percentile, not the raw number.",
+    "CCC": "Spread on the riskiest rated credit. CCCs decompress (blow out vs. BBs) before broad HY does \u2014 the canary. If HY looks calm but CCC is widening, the weakest borrowers are already losing access to capital.",
+    "hy_ig": "HY minus IG spread \u2014 the decompression gauge. Widening gap = investors fleeing risk within credit even if both are 'okay.' A cleaner risk-appetite read than either spread alone.",
+    "vix": "30-day implied volatility on the S&P 500 \u2014 the price of insurance. Under 15 calm, 15\u201320 normal, 20\u201330 elevated, 30+ stressed. Low VIX for months breeds leverage; the unwind is the story, not the spike itself.",
+    "200dma": "Whether the index sits above its 200-day moving average \u2014 the simplest trend filter in existence. Above = uptrend intact, dips get bought. Below = trend broken, rallies get sold. Not a timing tool; a regime tool.",
+    "sectors": "Daily sector returns reveal the market's message: cyclicals (energy, industrials, financials) leading = growth optimism; defensives (staples, utilities, healthcare) leading = fear; tech leading everything = liquidity chasing duration.",
+    "global": "What happened while you slept. Asia closes before the US open, Europe overlaps the morning. A red Asia/Europe board usually sets the US tone at the bell \u2014 and explains most 'mystery' gap opens.",
+    "dxy": "Dollar index vs. major currencies. Strong dollar = tighter global financial conditions (EM debt stress, commodity headwinds, US earnings drag from abroad). The dollar is the world's risk thermostat.",
+    "wti": "US crude benchmark. Oil is both an inflation input and a growth signal \u2014 rising on demand is fine, rising on supply shocks is stagflationary. Feeds directly into CPI and consumer psychology at the pump.",
+    "gold": "The anti-confidence asset: bid when real yields fall or trust in policy erodes. Gold rallying alongside stocks usually means markets expect easier money ahead.",
+    "copper": "\"Dr. Copper\" \u2014 in everything from housing to grids, so it front-runs global industrial demand. Strong copper = real economy humming.",
+    "copper_gold": "Copper/gold ratio \u2014 growth vs. fear in one number. Rising = reflation, and it historically tracks the 10Y yield. Falling while stocks rise = a divergence worth respecting.",
+    "btc": "Bitcoin \u2014 in practice a high-beta liquidity gauge. It sniffs out changes in dollar liquidity and risk appetite before equities do. Whatever your view of it, it's information.",
+    "cpi": "Consumer Price Index YoY \u2014 the headline inflation print, released mid-month for the prior month. The single biggest recurring market-mover on the calendar alongside jobs day.",
+    "core_cpi": "CPI ex food & energy \u2014 the trend signal the Fed actually steers by, since food/energy are volatile and mean-reverting. Sticky core = higher-for-longer.",
+    "core_pce": "The Fed's official 2% target measure (broader weights than CPI, notably healthcare and housing). When Powell says 'inflation,' he means this number.",
+    "unrate": "The unemployment rate. Lags the cycle but defines it: a rise of ~0.5pp from the low has never been a soft landing (see Sahm rule below).",
+    "nfp": "Nonfarm payrolls \u2014 monthly jobs added, first Friday of the month. The healthy-replacement pace shifts with immigration and demographics; watch revisions and the 3-month average, not the headline alone.",
+    "gdp": "Real GDP growth, quarter-over-quarter annualized. Backward-looking but sets the narrative. ~2% is trend for the modern US economy.",
+    "sahm": "Sahm rule: when the 3-month average unemployment rate rises 0.50pp above its 12-month low, a recession has effectively always begun. One of the few indicators with a near-perfect historical record \u2014 a triggered Sahm is not noise.",
+    "mortgage": "30-year fixed mortgage average \u2014 the 10Y Treasury plus a spread. Sets housing affordability, and for a live-in flip strategy this is your cost-of-capital line item.",
+    "case_shiller": "Case-Shiller national home price index, YoY (reported ~2 months lagged). Home equity is most households' balance sheet; sustained declines change consumer behavior everywhere.",
+    "fear_greed": "CNN's composite of momentum, breadth, options skew, junk demand, and safe-haven flows. Useful as a contrarian extreme detector: sub-20 or 80+ readings mark sentiment crowding, not direction.",
+    "claims": "Weekly initial jobless claims \u2014 the highest-frequency read on the labor market, out every Thursday. The 4-week average smooths noise; a sustained move above ~250K signals real deterioration well before the monthly jobs report shows it.",
+    "continuing": "Continuing claims: people still collecting benefits. Rising continuing claims while initial claims stay flat means the people losing jobs aren't finding new ones \u2014 the hiring rate is what's broken, not the firing rate.",
+    "fed_balance": "The Fed's total assets. Expansion (QE) adds liquidity to the system; runoff (QT) drains it. A slow, steady decline is normal policy; a sudden jump means the Fed stepped in to backstop something.",
+    "crude_stocks": "US commercial crude oil inventories, reported weekly by the EIA. Builds usually pressure oil prices, draws support them. The single biggest weekly swing factor in energy markets.",
+    "BKLN": "Broadly syndicated loans (BSL) \u2014 floating-rate senior bank debt to leveraged borrowers, tracked here via the largest loan ETF. Loans sit above bonds in the capital structure and their coupons float with SOFR, so they hold value when rates rise but suffer when default risk climbs.",
+    "SRLN": "An actively managed senior-loan fund. Comparing it against the passive loan ETF shows whether active managers are being rewarded for credit selection in the loan market right now.",
+    "BIZD": "Business development companies \u2014 the public window into private credit. BDCs originate direct loans to middle-market firms, so their prices reflect how markets are pricing private-credit risk and NAV marks. When BDCs sell off while HY holds firm, worry about the private side.",
+    "HYG": "The high-yield bond ETF. Price-based and total-return-oriented, so it captures both spread and rate moves \u2014 read it alongside the HY OAS spread, which strips out the Treasury component.",
+    "LQD": "Investment-grade corporate bond ETF. Long duration means it trades more on rates than on credit; a big LQD drawdown is usually a rates story, not a default story.",
+    "EMB": "Emerging-market sovereign debt in dollars. Highly sensitive to the dollar and global risk appetite \u2014 a strong DXY is a headwind for EM debt almost mechanically.",
+    "TLT": "20+ year Treasury ETF \u2014 the purest duration exposure available. Its drawdowns are the clearest illustration of what long-bond interest-rate risk actually costs.",
+    "corp_profits": "National-accounts corporate profits \u2014 the economy-wide earnings picture, cleaner than index EPS because it isn't distorted by buybacks or index composition. Profits usually turn down before employment does.",
+    "debt_gdp": "Federal debt as a share of GDP. The level itself doesn't force a crisis; the trajectory plus the interest burden is what shapes long-term rates, term premium, and the dollar.",
+    "m2": "M2 money supply growth. Rapid expansion preceded the 2021\u201322 inflation; outright contraction is historically rare and disinflationary. A slow-moving but important backdrop variable.",
+    "savings": "Personal savings rate. Low savings means consumption is running on income and credit with no cushion \u2014 it tells you how fragile consumer spending is to a job-market shock.",
+    "umcsent": "University of Michigan consumer sentiment. Weakly correlated with actual spending, but it moves politics and it captures inflation expectations, which the Fed watches closely.",
+    "indpro": "Industrial production \u2014 the factory-and-mines side of the economy. Small share of GDP, outsized share of cyclical swings, so it's a useful early cycle indicator.",
+    "houst": "Housing starts, annualized. Housing is the most rate-sensitive sector in the economy, which makes starts the fastest read on whether monetary policy is actually biting.",
+    "retail": "Retail sales growth \u2014 roughly 70% of the US economy is the consumer, so this is the demand pulse. Compare it to inflation: nominal growth below CPI means real spending is shrinking.",
+    "longrun": "Full-history context. The point isn't today's number, it's where today sits in the distribution of everything that came before \u2014 the percentile is the insight."
+  }
+}

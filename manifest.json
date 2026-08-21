@@ -1,0 +1,23 @@
+{
+  "name": "Market Terminal",
+  "short_name": "Terminal",
+  "description": "Personal market dashboard: rates, credit, equities, macro.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#004747",
+  "theme_color": "#009EA0",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

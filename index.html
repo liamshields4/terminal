@@ -1,0 +1,660 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Market Terminal</title>
+<meta name="theme-color" content="#009EA0">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<style>
+:root{
+  --garnet:#782F40; --garnet-hi:#9A4054; --garnet-deep:#4E1E2A;
+  --gold:#CEB888; --gold-hi:#E6D6AF; --gold-dim:rgba(206,184,136,.20);
+  --panel:#060F0E; --panel2:#0B1817; --line:rgba(206,184,136,.14);
+  --ink:#F1EBE0; --dim:#9FB3AE; --faint:#6E8783;
+  --up:#46D6A2; --down:#FF6F6B; --link:#8FE3DC;
+  --mono:ui-monospace,"SF Mono","Cascadia Mono",Menlo,Consolas,monospace;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,ui-serif,serif;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{
+  min-height:100%;
+  background:#0A3C44;
+  /* overhead light source, then a hue that drifts cyan -> teal -> petrol -> blue-black */
+  background:
+    radial-gradient(ellipse 150% 55% at 50% -8%, rgba(0,240,228,.30), rgba(0,240,228,0) 62%),
+    linear-gradient(168deg,
+      #009EA0 0%, #00898D 8%, #05747C 18%, #095F6B 29%,
+      #0C4A59 42%, #0B3846 56%, #0A2935 70%, #081E29 84%, #06161F 100%);
+  background-attachment:scroll;
+}
+/* engraved guilloche rosette — the signature surface, drawn once behind everything */
+body::before{
+  content:"";position:fixed;inset:0;z-index:-2;pointer-events:none;
+  background:url("guilloche.svg") no-repeat 50% -30vh / min(1500px,175vw) auto;
+  opacity:.55;
+  -webkit-mask-image:linear-gradient(180deg, rgba(0,0,0,1) 0, rgba(0,0,0,.85) 14vh, rgba(0,0,0,.34) 25vh, rgba(0,0,0,0) 36vh);
+  mask-image:linear-gradient(180deg, rgba(0,0,0,1) 0, rgba(0,0,0,.85) 14vh, rgba(0,0,0,.34) 25vh, rgba(0,0,0,0) 36vh);
+}
+/* fine grain: kills gradient banding and gives the surface a material feel, plus a vignette */
+body::after{
+  content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:
+    radial-gradient(ellipse 120% 90% at 50% 45%, rgba(0,0,0,0) 55%, rgba(0,14,20,.42) 100%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
+  background-repeat:no-repeat,repeat;
+  opacity:.5;
+}
+body{background:transparent;color:var(--ink);font-family:var(--sans);font-size:14px;line-height:1.45;
+  padding:14px 14px calc(34px + env(safe-area-inset-bottom));max-width:1280px;margin:0 auto;position:relative}
+a{color:var(--link);text-decoration:none}
+a:hover{text-decoration:underline}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px;border-radius:3px}
+.up{color:var(--up)}.down{color:var(--down)}.dim{color:var(--dim)}
+
+/* ---------- header (bright turquoise zone -> black type) ---------- */
+header{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding:2px 2px 12px}
+.wordmark{font-family:var(--serif);font-weight:700;font-size:23px;letter-spacing:.02em;color:#04211F;line-height:1}
+.wordmark b{color:var(--garnet);font-weight:700}
+.asof{font-family:var(--mono);font-size:11px;color:#0A2C2A;opacity:.9}
+.badge{font-family:var(--mono);font-size:10px;letter-spacing:.1em;padding:3px 8px;border-radius:3px;
+  background:var(--garnet);color:var(--gold-hi)}
+.badge.warn{background:#8E1F1F;color:#FFE0DE}
+#refresh{margin-left:auto;background:rgba(0,0,0,.12);border:1px solid rgba(4,33,31,.3);color:#04211F;
+  font-family:var(--mono);font-size:13px;padding:3px 10px;border-radius:4px;cursor:pointer;line-height:1.5}
+#refresh:hover{background:var(--garnet);border-color:var(--garnet);color:var(--gold-hi)}
+
+/* ---------- tabs ---------- */
+#tabs{display:flex;gap:4px;margin-bottom:14px;flex-wrap:wrap}
+#tabs button{font-family:var(--serif);font-size:14.5px;letter-spacing:.03em;padding:7px 16px;cursor:pointer;
+  background:rgba(6,15,14,.62);color:var(--gold-hi);border:1px solid rgba(206,184,136,.14);
+  backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);
+  border-radius:4px 4px 0 0;border-bottom:2px solid transparent}
+#tabs button:hover{background:rgba(6,15,14,.85);border-color:rgba(206,184,136,.3)}
+#tabs button[aria-selected="true"]{background:var(--garnet);border-color:var(--garnet);
+  border-bottom-color:var(--gold);color:#fff}
+#tabs .hint{margin-left:auto;align-self:center;font-family:var(--mono);font-size:10.5px;color:#0A2C2A;opacity:.75}
+@media(max-width:640px){#tabs .hint{display:none}#tabs button{flex:1 1 auto;padding:7px 8px;font-size:13.5px}}
+
+/* ---------- regime strip ---------- */
+#regime{background:
+    repeating-linear-gradient(115deg, rgba(206,184,136,.018) 0 1px, rgba(206,184,136,0) 1px 13px),
+    rgba(6,15,14,.92);border:1px solid var(--gold-dim);border-left:4px solid var(--garnet);
+  border-radius:5px;padding:11px 14px;margin-bottom:14px;display:flex;flex-wrap:wrap;align-items:center;
+  backdrop-filter:blur(3px) saturate(112%);-webkit-backdrop-filter:blur(3px) saturate(112%);
+  box-shadow:0 10px 30px rgba(0,26,31,.5), inset 0 1px 0 rgba(255,255,255,.06)}
+#regime .chip{font-family:var(--mono);font-size:13px;white-space:nowrap;color:var(--gold-hi)}
+#regime .chip.up{color:var(--up)}#regime .chip.down{color:var(--down)}
+#regime .sep{color:var(--garnet-hi);margin:0 10px;font-family:var(--mono)}
+@media(max-width:760px){
+  #regime{gap:6px 7px;padding:10px}
+  #regime .sep{display:none}
+  #regime .chip{background:rgba(206,184,136,.07);border:1px solid var(--gold-dim);
+    padding:3px 8px;border-radius:99px;font-size:11.5px}
+}
+
+/* ---------- grid ---------- */
+#app{display:grid;grid-template-columns:1fr;gap:12px;align-items:start}
+@media(min-width:980px){
+  #app{grid-template-columns:repeat(12,1fr)}
+  .s3{grid-column:span 3}.s4{grid-column:span 4}.s5{grid-column:span 5}
+  .s6{grid-column:span 6}.s7{grid-column:span 7}.s8{grid-column:span 8}
+  .s9{grid-column:span 9}.s12{grid-column:span 12}
+}
+.panel{background:
+    repeating-linear-gradient(115deg, rgba(206,184,136,.016) 0 1px, rgba(206,184,136,0) 1px 13px),
+    rgba(6,15,14,.90);border:1px solid var(--line);border-radius:6px;padding:0 14px 12px;
+  min-width:0;overflow:hidden;backdrop-filter:blur(3px) saturate(112%);-webkit-backdrop-filter:blur(3px) saturate(112%);
+  box-shadow:0 10px 30px rgba(0,26,31,.46), inset 0 1px 0 rgba(255,255,255,.055)}
+.panel.hero{border-color:rgba(206,184,136,.34)}
+.eyebrow{display:flex;align-items:baseline;gap:10px;font-family:var(--serif);font-size:15px;
+  letter-spacing:.03em;color:var(--gold-hi);padding:11px 0 8px;margin-bottom:6px;
+  border-bottom:2px solid var(--garnet)}
+.panel.hero .eyebrow{background:
+    repeating-linear-gradient(115deg, rgba(206,184,136,.038) 0 1px, rgba(206,184,136,0) 1px 13px),
+    var(--garnet);margin:0 -14px 8px;padding:9px 14px;
+  border-bottom:2px solid var(--gold);color:#fff}
+.eyebrow .right{margin-left:auto;font-family:var(--mono);font-size:10.5px;color:var(--dim);letter-spacing:.02em}
+.panel.hero .eyebrow .right{color:rgba(255,255,255,.72)}
+.info{font-family:var(--mono);font-size:10px;color:var(--gold);opacity:.45;cursor:pointer;
+  border:1px solid var(--gold-dim);border-radius:99px;width:15px;height:15px;line-height:13px;
+  text-align:center;display:inline-block;flex:0 0 auto}
+.info:hover{opacity:1;border-color:var(--gold)}
+
+/* ---------- aligned data rows (one grid, always 5 cells) ---------- */
+.row{display:grid;grid-template-columns:minmax(0,1fr) 74px 92px 66px 68px;align-items:center;
+  column-gap:10px;padding:6px 0;border-bottom:1px solid var(--panel2)}
+.row:last-child{border-bottom:none}
+.c-name{min-width:0;font-size:13px;display:flex;align-items:center;gap:6px}
+.c-name span.t{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.c-spark{height:22px}
+.c-val,.c-delta,.c-sub{font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:right}
+.c-val{font-size:13.5px}
+.c-delta{font-size:12px}
+.c-sub{font-size:11px;color:var(--dim)}
+@media(max-width:620px){
+  .row{grid-template-columns:minmax(0,1fr) 86px 62px}
+  .c-spark,.c-sub{display:none}
+}
+.fg-note{grid-column:1/-1;font-size:12.5px;color:#CFE0DC;border-left:3px solid var(--gold);
+  padding:8px 10px;margin:4px 0 2px;background:var(--panel2);border-radius:0 4px 4px 0}
+.flag{font-family:var(--mono);font-size:9.5px;padding:1px 5px;border-radius:3px;border:1px solid var(--line);color:var(--dim)}
+.flag.on{color:var(--up);border-color:rgba(70,214,162,.35)}
+.flag.off{color:var(--down);border-color:rgba(255,111,107,.35)}
+.pctile{font-family:var(--mono);font-size:10px;padding:1px 6px;border-radius:99px;border:1px solid var(--line);color:var(--dim)}
+.pctile.tight{color:var(--up);border-color:rgba(70,214,162,.35)}
+.pctile.wide{color:var(--down);border-color:rgba(255,111,107,.35)}
+
+/* ---------- big-number cards ---------- */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;padding-top:4px}
+.card{background:rgba(11,24,23,.82);border:1px solid var(--line);border-radius:5px;padding:10px 12px;cursor:pointer}
+.card:hover{border-color:var(--gold)}
+.card .lbl{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--gold);opacity:.82}
+.card .big{display:block;font-family:var(--mono);font-size:26px;line-height:1.15;margin-top:3px;color:var(--ink)}
+.card .meta{display:block;font-family:var(--mono);font-size:11px;color:var(--faint);margin-top:2px}
+.card.alert{border-color:var(--down);background:rgba(255,111,107,.07)}
+.card.alert .big{color:var(--down)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(146px,1fr));gap:8px;padding-top:4px}
+.stat{background:rgba(11,24,23,.82);border:1px solid var(--line);border-radius:5px;padding:9px 11px;cursor:pointer}
+.stat:hover{border-color:var(--gold)}
+.stat .lbl{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--gold);opacity:.82}
+.stat .big{display:block;font-family:var(--mono);font-size:18px;margin-top:2px;color:var(--ink)}
+.stat .meta{display:block;font-family:var(--mono);font-size:10px;color:var(--faint);margin-top:1px}
+.stat.alert{border-color:var(--down)}.stat.alert .big{color:var(--down)}
+
+/* ---------- charts ---------- */
+.chartwrap{max-width:520px;margin:6px auto 10px}
+.longrun{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;padding-top:6px}
+.lr{background:rgba(11,24,23,.82);border:1px solid var(--line);border-radius:5px;padding:10px 12px}
+.lr .lrh{display:flex;align-items:baseline;gap:8px;margin-bottom:4px}
+.lr .lrt{font-family:var(--serif);font-size:14px;color:var(--gold-hi)}
+.lr .lrv{margin-left:auto;font-family:var(--mono);font-size:15px}
+.lr .lrf{font-family:var(--mono);font-size:10.5px;color:var(--faint);margin-top:3px;display:flex}
+.lr .lrf b{margin-left:auto;font-weight:400;color:var(--dim)}
+
+/* ---------- sector strip ---------- */
+.sectors{display:flex;flex-wrap:wrap;gap:6px;padding-top:8px}
+.sector{flex:1 1 84px;text-align:center;border:1px solid var(--panel2);border-radius:4px;padding:6px 4px}
+.sector .sn{font-size:10.5px;color:var(--dim);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sector .sv{font-family:var(--mono);font-size:12px}
+.sector.pos{background:rgba(70,214,162,.09);border-color:rgba(70,214,162,.2)}
+.sector.neg{background:rgba(255,111,107,.09);border-color:rgba(255,111,107,.2)}
+
+/* ---------- headlines / lists ---------- */
+.hl{padding:7px 0;border-bottom:1px solid var(--panel2)}
+.hl:last-child{border-bottom:none}
+.hl a{color:var(--ink);font-size:13.5px}
+.hl a:hover{color:var(--gold-hi)}
+.hl .meta{font-family:var(--mono);font-size:10.5px;color:var(--faint);margin-top:2px}
+.hl .meta b{color:var(--gold);font-weight:600}
+.countdown{display:flex;align-items:baseline;gap:10px;padding:6px 0 8px}
+.countdown .big{font-family:var(--mono);font-size:30px;color:var(--gold);font-weight:700}
+.links{display:flex;gap:6px 16px;flex-wrap:wrap;padding-top:10px;font-size:12.5px}
+.rail{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;padding-top:6px}
+.rail h4{font-family:var(--serif);font-size:13px;letter-spacing:.04em;color:var(--gold);
+  margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid var(--gold-dim)}
+.rail li{list-style:none;padding:3px 0;font-size:13px}
+.feature{display:block;background:var(--garnet);color:#fff;border-radius:5px;padding:11px 13px;margin-bottom:8px}
+.feature:hover{background:var(--garnet-hi);text-decoration:none}
+.feature .ft{font-family:var(--serif);font-size:15.5px;display:block}
+.feature .fs{font-family:var(--mono);font-size:10.5px;color:var(--gold-hi);display:block;margin-top:2px}
+.range{position:relative;height:3px;background:rgba(206,184,136,.18);border-radius:2px;width:100%}
+.range i{position:absolute;top:50%;width:7px;height:7px;border-radius:99px;background:var(--gold);transform:translate(-50%,-50%)}
+.empty{padding:10px 0;color:var(--dim);font-size:13px}
+
+footer{margin-top:18px;font-family:var(--mono);font-size:11px;color:rgba(241,235,224,.55);text-align:center}
+footer details{text-align:left;max-width:640px;margin:8px auto;color:rgba(241,235,224,.7)}
+footer summary{cursor:pointer;text-align:center;color:var(--gold)}
+svg{display:block}
+@media(prefers-reduced-motion:no-preference){.panel{transition:border-color .15s}}
+</style>
+</head>
+<body>
+<header>
+  <span class="wordmark" id="wordmark">Market<b>·</b>Terminal</span>
+  <span class="asof" id="asof">loading…</span>
+  <span id="badges"></span>
+  <button id="refresh" title="Refresh">↻</button>
+</header>
+
+<nav id="tabs" role="tablist"></nav>
+<div id="regime" hidden></div>
+<main id="app"></main>
+<footer id="foot"></footer>
+
+<script type="application/json" id="fallback-data">{"generated_at":"2026-08-20T13:30:00+00:00","sample":true,"rates":{"curve":{"3M":4.05,"2Y":3.72,"5Y":3.95,"10Y":4.28,"30Y":4.86},"curve_1m":{"3M":4.12,"2Y":3.81,"5Y":4.01,"10Y":4.31,"30Y":4.82},"curve_1y":{"3M":4.85,"2Y":4.2,"5Y":4.1,"10Y":4.15,"30Y":4.45},"ten_year":{"value":4.28,"chg_1d":-0.03,"chg_1m":-0.03,"spark":[4.151,4.157,4.181,4.183,4.187,4.194,4.182,4.186,4.195,4.213,4.196,4.19,4.173,4.191,4.204,4.185,4.212,4.238,4.249,4.258,4.244,4.223,4.228,4.209,4.197,4.188,4.167,4.169,4.169,4.19,4.194,4.204,4.207,4.219,4.22,4.212,4.24,4.268,4.288,4.28]},"spreads":{"2s10s":{"bps":56,"spark":[-4,-4,-3,-3,-1,0,3,4,8,11,10,11,14,15,19,20,20,22,24,25,25,26,29,31,31,32,32,32,34,35,36,38,38,40,40,43,43,44,44,56]},"3m10y":{"bps":23,"spark":[-35,-11,-23,7,-11,-16,11,23,-3,34,16,2,23,13,2,-26,-52,-44,-60,-51,-57,-58,-24,-22,-15,13,-7,-29,2,27,12,-8,11,44,26,59,88,98,95,23]}},"fed":{"upper":4.0,"lower":3.75,"sofr":3.88},"breakevens":{"5Y":2.31,"10Y":2.28}},"credit":{"IG":{"bps":92,"chg_1d":1,"chg_1m":-4,"pctile":14,"spark":[97,98,97,97,97,97,97,97,96,96,95,94,94,95,95,94,95,94,93,93,92,91,91,90,90,89,89,90,90,90,91,91,90,89,88,88,89,89,88,92],"spark_long":[159,163,159,168,159,160,164,171,175,178,183,190,187,190,197,204,202,207,213,214,216,213,214,215,207,209,218,224,228,226,230,230,229,235,226,230,221,222,221,215,219,218,220,227,222,212,208,211,204,197,205,207,205,212,208,211,205,203,208,216,222,219,220,216,209,208,214,220,224,232,227,220,219,214,208,205,207,207,202,208,217,216,207,197,204,194,198,199,194,200,190,182,181,171,177,171,164,154,156,155,157,159,164,173,176,169,168,162,152,150,154,147,142,139,142,142,144,148,145,92]},"HY":{"bps":305,"chg_1d":-4,"chg_1m":-18,"pctile":16,"spark":[332,329,331,332,329,328,328,330,329,328,330,332,334,333,333,331,332,333,334,334,332,334,336,339,339,340,338,340,342,340,337,336,336,337,336,332,334,330,331,305],"spark_long":[545,565,535,505,505,520,545,557,590,587,620,586,562,562,543,559,568,568,592,595,578,567,592,621,596,621,656,656,659,634,634,632,639,599,634,633,623,645,648,645,658,621,622,613,647,678,658,654,622,615,638,667,663,647,620,627,659,627,647,608,582,558,571,554,541,548,515,531,499,498,476,451,451,444,432,423,423,394,369,377,386,386,412,418,444,421,438,460,489,473,456,487,463,500,528,497,475,490,469,436,460,451,472,441,431,443,403,378,390,420,455,422,421,439,437,449,423,387,354,305]},"CCC":{"bps":782,"chg_1d":6,"chg_1m":22,"pctile":34,"spark":[742,743,746,740,736,732,739,748,757,751,744,753,754,759,757,758,759,759,762,754,759,766,761,762,767,766,762,757,758,751,759,765,770,777,781,780,783,784,794,782],"spark_long":[1055,1125,1165,1211,1264,1245,1312,1376,1408,1452,1496,1477,1513,1435,1405,1396,1308,1280,1301,1321,1271,1346,1373,1342,1367,1377,1380,1358,1443,1466,1498,1542,1624,1537,1555,1594,1549,1529,1447,1391,1366,1293,1246,1315,1321,1320,1399,1409,1493,1515,1567,1489,1504,1547,1464,1537,1475,1467,1406,1403,1420,1339,1415,1399,1401,1415,1389,1349,1373,1381,1340,1376,1337,1249,1202,1119,1055,1098,1076,1143,1184,1102,1186,1261,1183,1252,1237,1230,1311,1263,1265,1339,1376,1367,1449,1502,1518,1447,1467,1456,1401,1320,1322,1253,1241,1268,1257,1213,1224,1208,1254,1257,1342,1419,1457,1408,1338,1404,1452,782]},"hy_minus_ig":213},"equities":{"indices":[{"sym":"^GSPC","name":"S&P 500","last":6851.42,"chg_1d_pct":0.34,"ytd_pct":9.8,"wk52_low":5618.16,"wk52_high":7399.53,"chg_5d_pct":1.2,"chg_1mo_pct":2.4,"spark":[6162.567,6145.882,6190.394,6217.126,6247.821,6284.648,6339.27,6310.494,6290.471,6378.594,6457.245,6530.429,6479.409,6431.538,6414.768,6420.826,6456.209,6414.507,6437.799,6391.66,6347.586,6390.802,6415.423,6451.954,6450.315,6464.27,6438.575,6432.573,6485.933,6553.165,6507.301,6468.161,6531.046,6566.486,6623.387,6598.067,6604.001,6585.327,6648.314,6851.42],"above_200dma":true},{"sym":"^IXIC","name":"Nasdaq","last":23412.87,"chg_1d_pct":0.52,"ytd_pct":12.4,"wk52_low":19198.55,"wk52_high":25285.9,"chg_5d_pct":1.6,"chg_1mo_pct":3.1,"spark":[21207.823,21513.742,21483.971,21567.088,21750.08,22021.431,22043.376,22035.791,21890.527,22138.793,21984.169,21831.828,21922.836,21973.71,22125.965,22082.782,22280.641,22124.789,22038.312,22178.82,22025.815,21985.128,22157.445,22314.077,22262.826,22140.775,22127.395,22300.207,22291.172,22156.208,22320.574,22414.14,22684.344,22965.359,23232.943,23260.117,23471.906,23431.704,23398.003,23412.87],"above_200dma":true},{"sym":"^DJI","name":"Dow","last":47215.11,"chg_1d_pct":0.11,"ytd_pct":6.2,"wk52_low":38716.39,"wk52_high":50992.32,"chg_5d_pct":0.7,"chg_1mo_pct":1.4,"spark":[43054.929,43575.528,43436.876,43413.863,43394.797,43373.434,43385.01,43388.396,43195.34,43378.449,43799.466,43958.87,44419.96,44602.023,44390.234,44772.359,45278.854,45174.01,44804.795,44938.785,45101.851,45288.69,45882.4,46154.643,46583.039,46256.482,46422.265,46834.082,46527.911,46219.319,46579.122,47104.152,46798.647,47053.475,46808.323,47177.03,47447.028,47305.465,47138.404,47215.11],"above_200dma":true},{"sym":"^RUT","name":"Russell 2000","last":2418.55,"chg_1d_pct":-0.28,"ytd_pct":3.1,"wk52_low":1983.21,"wk52_high":2612.03,"chg_5d_pct":-0.9,"chg_1mo_pct":-1.8,"spark":[2183.867,2203.742,2204.271,2201.845,2232.354,2247.406,2253.121,2261.118,2278.707,2295.626,2323.351,2324.728,2347.817,2362.573,2387.087,2409.114,2432.6,2458.95,2488.911,2502.285,2509.578,2526.6,2548.436,2550.387,2552.278,2539.841,2558.49,2590.187,2589.73,2578.415,2569.017,2571.142,2566.324,2596.911,2579.93,2575.969,2561.893,2575.67,2596.132,2418.55],"above_200dma":false}],"vix":{"sym":"^VIX","name":"VIX","last":14.8,"chg_1d_pct":-2.1,"ytd_pct":-8.0,"wk52_low":12.14,"wk52_high":15.98,"spark":[13.217,13.241,13.305,13.473,13.361,13.273,13.209,13.156,13.109,13.215,13.282,13.231,13.167,13.134,13.067,13.186,13.163,13.215,13.354,13.384,13.344,13.505,13.675,13.661,13.713,13.896,13.928,13.876,13.769,13.949,14.082,14.082,14.128,14.17,14.135,14.329,14.416,14.369,14.25,14.8],"regime":"calm"},"sectors":[{"sym":"XLK","name":"Tech","chg_1d_pct":0.9},{"sym":"XLF","name":"Financials","chg_1d_pct":0.4},{"sym":"XLE","name":"Energy","chg_1d_pct":-0.7},{"sym":"XLV","name":"Health","chg_1d_pct":0.1},{"sym":"XLY","name":"Discretionary","chg_1d_pct":0.6},{"sym":"XLP","name":"Staples","chg_1d_pct":-0.2},{"sym":"XLI","name":"Industrials","chg_1d_pct":0.3},{"sym":"XLB","name":"Materials","chg_1d_pct":-0.4},{"sym":"XLU","name":"Utilities","chg_1d_pct":-0.5},{"sym":"XLRE","name":"Real Estate","chg_1d_pct":0.2},{"sym":"XLC","name":"Comms","chg_1d_pct":0.7}]},"global":[{"sym":"^N225","name":"Nikkei 225","last":44120,"chg_1d_pct":0.8,"ytd_pct":10.5,"wk52_low":36178.4,"wk52_high":47649.6,"chg_5d_pct":1.1,"chg_1mo_pct":2.2},{"sym":"^HSI","name":"Hang Seng","last":26340,"chg_1d_pct":-0.3,"ytd_pct":18.2,"wk52_low":21598.8,"wk52_high":28447.2,"chg_5d_pct":-0.6,"chg_1mo_pct":1.9},{"sym":"^GDAXI","name":"DAX","last":25110,"chg_1d_pct":0.2,"ytd_pct":13.7,"wk52_low":20590.2,"wk52_high":27118.8,"chg_5d_pct":0.9,"chg_1mo_pct":2.0},{"sym":"^FTSE","name":"FTSE 100","last":9480,"chg_1d_pct":0.1,"ytd_pct":8.9,"wk52_low":7773.6,"wk52_high":10238.4,"chg_5d_pct":0.4,"chg_1mo_pct":1.1},{"sym":"^STOXX50E","name":"Euro Stoxx 50","last":5890,"chg_1d_pct":0.3,"ytd_pct":11.4,"wk52_low":4829.8,"wk52_high":6361.2,"chg_5d_pct":0.8,"chg_1mo_pct":1.7}],"fx_cmdty":[{"sym":"DX-Y.NYB","name":"Dollar (DXY)","last":97.42,"chg_1d_pct":-0.15,"ytd_pct":-4.2,"wk52_low":79.88,"wk52_high":105.21,"chg_5d_pct":-0.4,"chg_1mo_pct":-1.1,"spark":[87.651,88.519,89.212,89.678,89.201,88.722,88.591,88.328,89.349,89.626,90.158,91.439,91.192,91.508,91.016,91.829,91.023,91.943,92.915,93.836,93.201,92.961,93.66,93.056,93.257,93.435,94.637,95.063,96.058,95.889,96.741,96.81,97.93,97.313,98.243,97.873,98.208,98.506,98.029,97.42]},{"sym":"EURUSD=X","name":"EUR/USD","last":1.182,"chg_1d_pct":0.2,"ytd_pct":5.1,"wk52_low":0.97,"wk52_high":1.28,"chg_5d_pct":0.3,"chg_1mo_pct":0.9,"spark":[1.062,1.06,1.052,1.05,1.052,1.061,1.06,1.068,1.061,1.061,1.063,1.078,1.089,1.096,1.087,1.086,1.095,1.091,1.096,1.097,1.088,1.103,1.114,1.11,1.115,1.113,1.113,1.117,1.115,1.113,1.114,1.121,1.118,1.113,1.122,1.12,1.135,1.139,1.148,1.182]},{"sym":"JPY=X","name":"USD/JPY","last":143.2,"chg_1d_pct":-0.3,"ytd_pct":-6.0,"wk52_low":117.42,"wk52_high":154.66,"chg_5d_pct":-0.5,"chg_1mo_pct":-1.4,"spark":[130.249,129.346,128.593,127.696,128.604,129.606,128.974,129.03,130.43,131.075,130.165,129.677,128.975,128.17,128.24,127.276,128.935,129.067,129.461,130.274,131.458,132.809,132.814,132.651,132.737,131.596,131.647,132.623,134.472,135.726,136.58,137.274,136.142,135.978,135.848,136.672,135.812,135.792,136.179,143.2]},{"sym":"CL=F","name":"WTI Crude","last":66.8,"chg_1d_pct":-1.2,"ytd_pct":-8.4,"wk52_low":54.78,"wk52_high":72.14,"chg_5d_pct":-2.1,"chg_1mo_pct":-3.6,"spark":[60.756,61.084,60.758,61.31,62.058,62.295,62.249,62.417,62.067,62.542,63.411,63.601,64.079,64.73,64.46,65.269,65.619,65.351,64.916,64.715,64.992,65.443,65.364,66.15,66.117,66.23,65.855,66.705,66.346,67.096,67.326,67.581,67.835,67.662,68.419,69.297,69.922,70.235,69.858,66.8]},{"sym":"GC=F","name":"Gold","last":3412.0,"chg_1d_pct":0.4,"ytd_pct":22.1,"wk52_low":2797.84,"wk52_high":3684.96,"chg_5d_pct":1.4,"chg_1mo_pct":3.8,"spark":[3063.748,3101.538,3090.969,3104.922,3137.829,3123.186,3135.243,3112.544,3086.585,3071.536,3115.958,3156.875,3177.077,3171.431,3192.58,3218.627,3218.434,3233.737,3264.658,3237.543,3223.929,3230.103,3212.321,3212.477,3226.131,3210.612,3220.599,3211.711,3225.255,3221.41,3240.384,3214.855,3235.987,3218.335,3260.718,3276.624,3282.937,3284.939,3302.593,3412.0]},{"sym":"HG=F","name":"Copper","last":4.62,"chg_1d_pct":0.9,"ytd_pct":11.3,"wk52_low":3.79,"wk52_high":4.99,"chg_5d_pct":1.8,"chg_1mo_pct":2.9,"spark":[4.195,4.232,4.242,4.303,4.348,4.395,4.398,4.403,4.421,4.473,4.487,4.501,4.506,4.558,4.551,4.518,4.553,4.604,4.639,4.66,4.697,4.689,4.71,4.678,4.652,4.659,4.67,4.672,4.638,4.669,4.684,4.669,4.661,4.663,4.648,4.616,4.669,4.727,4.755,4.62]},{"sym":"BTC-USD","name":"Bitcoin","last":118450.0,"chg_1d_pct":1.8,"ytd_pct":24.5,"wk52_low":97129.0,"wk52_high":127926.0,"chg_5d_pct":3.2,"chg_1mo_pct":6.4,"spark":[106700.032,107777.165,107361.456,108288.571,108755.613,110083.882,109352.923,110397.05,109730.65,110122.949,111572.903,110591.243,110232.209,110014.756,109862.537,109039.653,110346.714,111449.915,111483.164,111412.136,111927.037,111061.312,110157.828,111473.554,111278.055,111570.133,112976.492,114493.745,114719.871,114265.091,114037.611,115415.092,116726.431,116243.498,117404.191,117327.166,117552.906,117009.543,118277.183,118450.0]}],"credit_etfs":[{"sym":"BKLN","name":"Leveraged loans (BSL)","last":21.34,"chg_1d_pct":0.05,"ytd_pct":3.8,"wk52_low":17.5,"wk52_high":23.05,"chg_5d_pct":0.12,"chg_1mo_pct":0.4,"spark":[19.122,19.236,19.148,19.376,19.222,19.094,19.251,19.218,19.456,19.68,19.832,19.717,19.86,20.115,20.144,20.003,19.929,19.893,20.043,19.957,19.863,19.795,19.924,20.111,20.106,20.234,20.464,20.559,20.487,20.449,20.699,20.829,20.78,20.898,20.762,21.038,21.064,21.13,21.198,21.34]},{"sym":"SRLN","name":"Senior loans, active","last":41.88,"chg_1d_pct":0.07,"ytd_pct":4.1,"wk52_low":34.34,"wk52_high":45.23,"chg_5d_pct":0.15,"chg_1mo_pct":0.5,"spark":[37.887,37.797,37.676,38.055,37.786,37.697,38.033,37.907,37.812,37.961,37.782,38.245,38.791,38.474,38.544,38.875,38.876,39.369,39.474,39.289,39.444,39.68,39.658,39.905,40.266,40.386,40.496,40.913,41.184,41.308,41.821,41.63,41.988,41.79,41.992,41.858,41.909,42.26,42.624,41.88]},{"sym":"BIZD","name":"BDCs / private credit","last":15.62,"chg_1d_pct":-0.42,"ytd_pct":-2.6,"wk52_low":12.81,"wk52_high":16.87,"chg_5d_pct":-1.1,"chg_1mo_pct":-2.4,"spark":[14.008,14.043,13.988,14.054,14.093,13.975,14.047,14.159,14.222,14.387,14.318,14.24,14.116,14.154,14.171,14.19,14.149,14.289,14.184,14.36,14.423,14.476,14.614,14.564,14.484,14.459,14.344,14.32,14.4,14.448,14.408,14.477,14.377,14.524,14.452,14.409,14.333,14.436,14.587,15.62]},{"sym":"HYG","name":"High yield bonds","last":80.15,"chg_1d_pct":0.18,"ytd_pct":5.2,"wk52_low":65.72,"wk52_high":86.56,"chg_5d_pct":0.34,"chg_1mo_pct":0.9,"spark":[71.576,71.621,71.587,71.296,72.311,71.719,71.901,72.554,73.596,73.181,73.304,73.928,73.331,73.082,73.958,73.538,73.553,73.404,73.473,72.94,72.334,73.394,74.05,74.656,74.388,74.161,74.452,74.205,74.339,75.288,75.253,75.171,76.204,76.597,76.0,76.033,76.492,75.928,75.857,80.15]},{"sym":"LQD","name":"Investment grade bonds","last":111.4,"chg_1d_pct":0.26,"ytd_pct":4.4,"wk52_low":91.35,"wk52_high":120.31,"chg_5d_pct":0.51,"chg_1mo_pct":1.2,"spark":[101.415,101.912,103.12,103.309,103.33,104.434,104.426,105.382,104.975,104.887,104.404,104.801,104.271,103.837,103.428,103.629,103.447,103.598,105.063,105.773,106.924,106.492,106.489,105.739,106.478,106.427,106.163,105.283,104.796,104.503,104.524,105.821,106.618,106.339,106.284,105.728,107.058,106.999,107.916,111.4]},{"sym":"EMB","name":"EM sovereign debt","last":93.7,"chg_1d_pct":0.21,"ytd_pct":7.1,"wk52_low":76.83,"wk52_high":101.2,"chg_5d_pct":0.44,"chg_1mo_pct":1.5,"spark":[85.388,84.652,84.526,84.526,83.917,84.925,84.806,85.588,85.861,85.194,85.214,84.919,84.224,83.751,84.179,83.465,83.319,83.4,83.723,83.221,83.873,83.623,84.313,84.884,84.404,84.041,83.83,84.495,84.538,84.542,85.517,85.197,85.011,84.931,84.59,83.895,83.167,83.665,84.032,93.7]},{"sym":"TLT","name":"Long Treasuries (20y+)","last":89.25,"chg_1d_pct":0.62,"ytd_pct":2.9,"wk52_low":73.19,"wk52_high":96.39,"chg_5d_pct":1.05,"chg_1mo_pct":2.1,"spark":[81.465,81.299,81.851,82.882,82.558,83.146,83.69,84.79,85.724,85.435,85.914,85.346,85.43,85.446,84.821,84.819,84.711,84.929,84.727,84.292,84.327,84.503,84.083,84.625,84.346,83.785,83.703,83.777,83.327,83.709,84.32,84.646,85.255,84.559,84.572,84.534,83.914,83.953,83.318,89.25]}],"copper_gold":{"value":1.35,"spark":[1.411,1.409,1.401,1.392,1.374,1.367,1.379,1.38,1.37,1.374,1.362,1.36,1.362,1.376,1.37,1.371,1.384,1.392,1.395,1.398,1.393,1.389,1.38,1.389,1.401,1.395,1.407,1.39,1.376,1.375,1.367,1.361,1.376,1.362,1.35,1.34,1.344,1.334,1.315,1.35]},"macro":{"cpi":{"yoy":2.7,"asof":"2026-07-01"},"core_cpi":{"yoy":2.9,"asof":"2026-07-01"},"core_pce":{"yoy":2.6,"asof":"2026-06-01"},"unrate":{"value":4.2,"asof":"2026-07-01"},"nfp":{"chg_k":147,"asof":"2026-07-01"},"gdp":{"qoq_saar":2.1,"asof":"2026-04-01"},"sahm":{"value":0.13,"triggered":false,"asof":"2026-07-01"},"case_shiller":{"yoy":1.8,"asof":"2026-06-01"},"mortgage30":{"value":6.42,"chg_wk":-0.05,"asof":"2026-08-14","spark":[6.881,6.851,6.838,6.837,6.828,6.825,6.817,6.828,6.848,6.824,6.802,6.816,6.792,6.795,6.796,6.797,6.817,6.827,6.792,6.788,6.776,6.768,6.747,6.72,6.725,6.716,6.686,6.656,6.632,6.598,6.587,6.549,6.507,6.465,6.426,6.428,6.389,6.374,6.381,6.42]},"next_releases":[{"name":"Jobs report","date":"2026-09-04"},{"name":"CPI","date":"2026-09-11"},{"name":"GDP","date":"2026-09-24"},{"name":"PCE / income","date":"2026-09-25"}]},"weekly":{"claims":{"value":221,"chg":-6,"asof":"2026-08-15","spark":[236.395,239.546,242.731,238.079,235.351,235.057,237.538,236.138,237.846,235.098,236.803,234.776,232.815,234.939,237.864,240.652,240.934,239.807,241.428,242.243,245.055,247.582,243.619,242.072,243.333,240.385,236.992,231.959,232.414,236.283,240.433,236.552,237.987,236.847,237.744,236.387,240.182,244.509,239.811,241.493,237.465,232.706,230.287,232.141,236.515,232.503,230.506,225.595,225.638,225.11,223.53,221]},"claims_4wk":225,"continuing":{"value":1.94,"chg":0.02,"asof":"2026-08-08","spark":[1.873,1.887,1.88,1.878,1.884,1.895,1.915,1.912,1.921,1.924,1.937,1.925,1.915,1.902,1.919,1.911,1.913,1.9,1.895,1.879,1.883,1.871,1.877,1.87,1.862,1.863,1.859,1.852,1.837,1.822,1.838,1.832,1.818,1.808,1.809,1.829,1.819,1.835,1.836,1.834,1.847,1.845,1.83,1.833,1.84,1.847,1.84,1.858,1.873,1.893,1.892,1.94]},"fed_balance":{"value":6.42,"chg":-0.01,"asof":"2026-08-13","spark":[7.1,7.068,7.028,6.996,6.962,6.924,6.903,6.905,6.881,6.869,6.828,6.798,6.811,6.77,6.759,6.763,6.767,6.767,6.748,6.752,6.758,6.76,6.775,6.739,6.751,6.733,6.731,6.704,6.714,6.674,6.665,6.637,6.617,6.597,6.593,6.597,6.577,6.571,6.55,6.524,6.534,6.511,6.475,6.452,6.453,6.424,6.424,6.414,6.411,6.38,6.344,6.42]},"crude_stocks":{"value":424.6,"chg":-2.4,"asof":"2026-08-14","spark":[438.387,437.481,432.868,432.595,431.448,429.581,429.612,433.296,430.401,433.453,431.581,433.521,429.778,433.772,432.861,436.636,433.873,432.769,434.286,431.155,428.864,430.127,433.771,431.91,428.828,427.276,431.287,427.894,428.784,427.415,428.385,425.557,426.284,429.399,432.239,433.074,432.821,433.121,429.429,432.103,433.477,432.769,433.929,432.923,431.612,428.94,429.53,429.874,429.712,425.299,426.124,424.6]}},"quarterly":{"stats":[{"key":"corp_profits","label":"Corporate profits","value":6.8,"unit":"% YoY","asof":"2026-04-01","spark":[4.107,4.215,4.458,4.389,4.446,4.713,4.878,4.874,5.038,5.304,5.335,5.552,5.473,5.739,5.805,5.769,5.975,6.104,6.35,6.551,6.74,6.815,7.082,6.978,7.196,7.351,7.321,7.514,7.566,7.65,7.867,7.815,7.797,7.924,7.824,7.916,8.101,8.167,8.134,6.8]},{"key":"debt_gdp","label":"Federal debt / GDP","value":121.4,"unit":"%","asof":"2026-04-01","spark":[118.923,119.647,119.848,120.891,121.676,120.939,120.708,119.849,118.841,118.562,119.508,120.381,119.563,118.897,118.719,119.629,119.99,121.023,120.098,121.334,120.727,121.117,122.091,122.713,122.083,122.565,122.487,121.428,121.135,120.784,121.175,120.737,121.066,121.61,120.942,120.149,120.691,120.697,119.907,121.4]},{"key":"m2","label":"M2 money supply","value":4.2,"unit":"% YoY","asof":"2026-06-01","spark":[1.647,1.734,1.776,1.789,1.945,2.047,2.157,2.2,2.233,2.284,2.288,2.379,2.433,2.558,2.609,2.669,2.738,2.885,2.925,3.029,3.048,3.13,3.159,3.294,3.323,3.454,3.553,3.613,3.758,3.806,3.917,4.003,4.061,4.05,4.103,4.131,4.188,4.337,4.367,4.2]},{"key":"savings","label":"Personal savings rate","value":4.4,"unit":"%","asof":"2026-06-01","spark":[5.234,5.134,5.086,4.952,5.055,4.958,4.913,4.843,4.923,5.013,5.021,5.015,4.87,4.974,4.826,4.763,4.704,4.753,4.786,4.718,4.822,4.942,4.773,4.795,4.765,4.702,4.671,4.594,4.627,4.64,4.767,4.895,5.029,4.976,5.059,5.086,5.128,5.264,5.108,4.4]},{"key":"umcsent","label":"Consumer sentiment","value":62.1,"unit":"index","asof":"2026-07-01","spark":[69.388,69.846,68.464,70.324,68.906,68.162,66.465,65.825,66.643,64.696,63.1,63.528,63.847,64.666,63.433,64.542,65.315,66.276,64.481,64.152,61.921,63.234,64.904,66.369,64.173,63.35,63.303,63.247,61.417,62.434,61.403,61.236,59.462,59.55,57.797,55.871,55.724,54.662,55.629,62.1]},{"key":"indpro","label":"Industrial production","value":1.1,"unit":"% YoY","asof":"2026-07-01","spark":[0.219,0.226,0.238,0.259,0.284,0.305,0.34,0.348,0.383,0.393,0.433,0.456,0.475,0.502,0.537,0.576,0.596,0.601,0.611,0.645,0.676,0.706,0.716,0.74,0.745,0.754,0.769,0.808,0.836,0.871,0.877,0.896,0.904,0.918,0.926,0.964,0.98,1.002,1.03,1.1]},{"key":"houst","label":"Housing starts","value":1298,"unit":"K SAAR","asof":"2026-07-01","spark":[1422.451,1423.704,1421.207,1441.273,1432.813,1419.026,1429.878,1413.792,1403.842,1397.33,1393.485,1383.01,1376.568,1371.263,1343.489,1359.736,1332.643,1331.654,1331.766,1323.602,1305.521,1280.526,1270.804,1257.861,1254.416,1236.764,1248.183,1244.928,1214.88,1207.099,1230.662,1200.509,1203.187,1226.442,1216.367,1219.309,1209.417,1195.732,1199.297,1298]},{"key":"retail","label":"Retail sales","value":3.6,"unit":"% YoY","asof":"2026-07-01","spark":[2.748,2.767,2.793,2.912,2.757,2.618,2.54,2.47,2.606,2.597,2.758,2.74,2.676,2.766,2.624,2.834,2.984,2.936,2.885,3.03,3.163,3.239,3.085,3.208,3.051,3.12,3.16,3.348,3.422,3.255,3.445,3.564,3.616,3.442,3.555,3.543,3.633,3.843,4.026,3.6]}],"longrun":{"dgs10":{"spark":[14.071,13.957,14.102,13.936,13.829,13.712,13.329,13.115,13.246,12.825,12.44,12.655,12.729,12.705,12.319,11.936,11.714,12.028,12.014,12.302,11.997,11.862,11.828,12.047,11.669,11.916,11.829,11.374,11.253,11.087,11.168,11.461,11.392,11.486,11.328,11.496,11.103,11.241,10.899,10.906,10.594,10.401,10.057,9.867,9.879,9.832,9.675,9.673,9.894,9.712,9.717,9.637,9.974,9.766,9.867,9.58,9.317,9.445,9.444,9.177,8.749,8.956,8.79,8.906,8.786,8.82,8.805,9.138,9.416,9.315,9.239,8.951,9.098,8.702,8.477,8.703,8.251,8.352,8.345,8.324,8.12,7.765,8.077,8.234,8.425,8.025,8.198,7.899,7.584,7.549,7.577,7.196,7.353,7.358,7.626,7.916,8.01,7.832,8.144,8.262,8.024,8.258,8.383,8.123,7.849,7.385,7.352,7.082,6.846,6.575,6.204,6.127,5.873,5.63,5.38,5.324,5.572,5.224,5.46,5.691,5.719,5.691,5.822,5.787,5.856,6.141,6.307,6.042,5.607,5.907,5.728,5.903,5.617,5.513,5.341,5.468,5.774,5.715,5.706,5.515,5.228,5.539,5.15,5.453,5.52,5.099,5.37,4.974,4.964,4.28],"last":4.28,"min":0.52,"max":15.84,"pctile":34,"since":1980},"hy":{"spark":[569.404,548.14,585.407,538.363,554.23,507.856,457.509,463.452,512.231,530.051,565.571,593.759,594.529,549.124,550.498,516.26,517.604,501.011,499.473,466.582,486.474,476.437,473.537,428.288,425.497,430.052,477.763,482.72,443.316,421.105,402.577,422.161,466.372,514.445,559.806,602.608,638.473,682.276,630.942,628.436,636.43,654.312,664.604,674.937,718.562,674.114,674.682,721.034,670.913,629.1,666.048,712.16,661.229,611.12,643.98,662.148,662.77,669.665,694.998,725.577,672.214,625.844,655.004,703.012,736.25,725.21,706.673,689.301,637.422,664.09,637.932,645.405,646.687,628.134,644.89,638.766,609.709,647.99,612.83,574.993,547.916,544.299,572.366,553.552,524.897,539.516,513.148,514.082,487.161,524.936,490.693,461.41,439.332,420.175,442.292,458.968,487.728,490.463,445.201,471.169,443.158,412.38,402.04,451.546,436.669,420.308,461.619,511.193,498.025,458.69,487.377,515.303,497.038,525.809,511.841,488.263,496.533,520.216,516.271,547.945,495.951,494.411,480.539,433.877,475.555,437.042,404.989,442.882,489.34,532.78,514.906,558.269,519.578,540.456,585.365,551.969,512.648,529.749,568.098,590.218,635.508,629.264,614.552,573.613,548.572,592.782,546.801,512.591,495.3,305],"last":305,"min":233,"max":2147,"pctile":16,"since":1997},"unrate":{"spark":[5.946,5.701,5.412,5.419,5.436,5.473,5.652,5.659,5.974,5.655,5.44,5.117,4.965,5.143,5.441,5.431,5.17,5.033,5.07,4.907,5.109,5.442,5.4,5.463,5.703,5.665,5.426,5.738,6.076,5.715,5.894,5.809,5.468,5.209,4.957,5.117,4.893,4.529,4.311,4.518,4.504,4.604,4.565,4.32,3.953,3.797,3.449,3.261,3.335,3.227,3.194,3.272,3.126,3.008,3.276,3.323,3.249,3.266,3.224,3.089,3.379,3.171,3.478,3.724,3.99,3.731,3.725,4.067,3.899,3.646,3.797,3.59,3.639,3.375,3.69,3.519,3.212,3.336,3.212,3.242,3.228,3.524,3.522,3.421,3.043,3.028,2.846,2.888,2.972,2.932,2.619,2.604,2.578,2.669,3.001,2.827,2.772,2.456,2.662,2.455,2.684,2.889,2.697,2.979,2.969,2.903,2.93,3.244,3.224,3.198,3.032,3.269,3.259,3.131,2.896,2.675,2.907,3.116,3.454,3.747,3.87,4.075,4.217,4.431,4.639,4.389,4.607,4.45,4.25,4.545,4.183,4.179,4.051,4.252,4.32,4.608,4.912,5.005,4.674,4.784,4.485,4.825,5.084,4.933,4.691,4.82,4.996,5.339,5.416,4.2],"last":4.2,"min":3.4,"max":14.8,"pctile":28,"since":1970},"cpi":{"spark":[6.042,5.51,5.915,6.206,6.517,6.929,6.989,7.483,7.623,7.593,7.439,7.248,6.674,6.26,6.582,6.247,6.405,6.703,6.908,6.906,6.672,6.387,6.004,6.155,6.35,6.843,6.625,7.1,7.557,7.293,7.797,7.915,8.431,8.728,8.514,8.237,8.243,8.208,7.648,8.048,8.069,8.017,8.28,7.969,7.599,7.672,7.352,7.131,6.611,6.071,5.883,5.893,6.393,6.535,6.415,6.286,5.958,5.907,6.419,5.96,5.862,6.056,6.34,6.383,6.526,7.014,7.46,7.151,7.178,7.734,7.746,7.365,7.653,7.118,6.692,6.731,6.446,6.681,6.923,6.693,6.982,7.132,7.351,7.28,7.181,6.704,6.654,7.16,7.59,7.055,6.537,6.248,6.453,6.36,5.908,5.801,5.865,6.128,5.995,6.148,6.337,6.451,5.904,6.127,5.676,5.139,5.088,4.506,3.99,3.843,3.786,3.308,3.814,4.201,4.165,4.246,4.012,4.552,4.091,3.843,3.498,3.902,3.891,3.767,3.629,4.057,3.755,4.072,4.293,4.212,4.036,3.942,3.867,3.632,3.755,3.632,3.383,3.679,3.606,3.555,3.975,3.901,3.737,4.178,4.71,5.021,4.886,5.063,5.322,2.7],"last":2.7,"min":-2.1,"max":14.6,"pctile":47,"since":1971}}},"sentiment":{"fear_greed":{"score":61,"label":"Greed"}},"earnings":[{"sym":"NVDA","date":"2026-08-26"},{"sym":"SHAK","date":"2026-09-03"}],"week":{"fomc_next":"2026-09-16","fomc_days":27,"releases":[{"name":"Jobs report","date":"2026-09-04"},{"name":"CPI","date":"2026-09-11"}],"earnings":[{"sym":"NVDA","date":"2026-08-26"},{"sym":"SHAK","date":"2026-09-03"}]},"headlines":[{"title":"Sample headline \u2014 run the Update workflow to pull live WSJ, CNBC and MarketWatch stories","link":"#","source":"WSJ Markets","ts":"2026-08-20T13:05:00"},{"title":"Placeholder data so you can preview every tab before setup","link":"#","source":"CNBC","ts":"2026-08-20T12:35:00"},{"title":"Everything here refreshes automatically every 30 minutes once deployed","link":"#","source":"MarketWatch","ts":"2026-08-20T12:10:00"},{"title":"Headlines are deduped across all three feeds, newest first","link":"#","source":"WSJ Markets","ts":"2026-08-20T11:40:00"},{"title":"Tap any circled i to see what a number means and how to read it","link":"#","source":"CNBC","ts":"2026-08-20T11:05:00"},{"title":"The Dashboard tab holds only what needs checking every single day","link":"#","source":"MarketWatch","ts":"2026-08-20T10:30:00"}],"watchlist":[{"sym":"JPM","name":"JPM","last":318.42,"chg_1d_pct":0.5,"ytd_pct":14.2,"wk52_low":242.1,"wk52_high":322.8,"chg_5d_pct":1.1,"chg_1mo_pct":2.6,"spark":[288.915,292.804,294.672,296.629,296.978,298.83,297.741,300.397,301.462,305.559,305.266,307.518,304.99,305.21,307.838,306.98,308.556,307.433,307.53,311.721,310.431,314.066,311.834,313.201,316.207,319.323,319.371,320.788,323.043,325.639,328.132,329.471,328.558,330.765,331.983,333.084,337.23,335.526,338.252,318.42]},{"sym":"XOM","name":"XOM","last":112.35,"chg_1d_pct":-0.8,"ytd_pct":-2.1,"wk52_low":100.4,"wk52_high":126.3,"chg_5d_pct":-1.4,"chg_1mo_pct":-2.9,"spark":[101.946,103.319,103.053,103.497,103.846,104.116,103.588,104.174,105.41,106.087,105.856,106.879,106.966,106.386,106.924,107.108,107.462,108.935,109.384,110.765,110.689,111.598,110.848,110.645,111.391,112.134,113.212,113.202,112.933,112.87,113.242,112.368,112.344,113.007,112.435,112.257,113.443,114.776,114.449,112.35]},{"sym":"AAPL","name":"AAPL","last":248.9,"chg_1d_pct":0.3,"ytd_pct":8.7,"wk52_low":201.5,"wk52_high":259.8,"chg_5d_pct":0.9,"chg_1mo_pct":2.2,"spark":[222.577,220.972,223.175,225.082,224.438,225.002,226.674,224.759,227.096,229.651,228.721,230.437,232.131,231.877,234.534,233.642,234.124,233.745,234.055,236.356,237.355,238.564,241.805,240.94,240.072,241.337,240.079,243.197,242.966,243.266,243.518,245.902,248.757,250.331,249.187,249.03,250.762,249.858,252.538,248.9]},{"sym":"WMT","name":"WMT","last":109.2,"chg_1d_pct":0.1,"ytd_pct":12.0,"wk52_low":88.6,"wk52_high":111.5,"chg_5d_pct":0.5,"chg_1mo_pct":1.3,"spark":[97.908,97.861,97.494,98.282,97.487,98.222,97.463,98.541,98.916,99.385,98.703,97.901,97.828,99.244,99.753,100.881,100.122,99.456,98.599,99.337,98.846,98.583,99.25,99.984,99.838,100.034,99.81,100.228,100.161,100.103,99.784,99.567,99.276,98.408,98.234,98.724,98.451,97.811,98.9,109.2]},{"sym":"SHAK","name":"SHAK","last":98.6,"chg_1d_pct":1.4,"ytd_pct":-6.3,"wk52_low":81.2,"wk52_high":142.9,"chg_5d_pct":2.1,"chg_1mo_pct":-4.2,"spark":[89.012,88.857,89.928,90.716,91.224,91.81,92.466,92.713,92.775,92.787,93.042,93.222,93.53,93.847,94.708,95.791,95.449,94.678,94.501,93.751,94.628,95.131,94.921,94.51,95.541,96.504,97.141,97.796,98.563,98.713,98.741,99.1,100.157,101.45,102.585,103.546,102.886,102.593,103.843,98.6]}],"errors":[]}</script>
+<script type="application/json" id="fallback-config">{"title":"MARKET TERMINAL","watchlist":["JPM","XOM","AAPL","WMT","SHAK"],"earnings_tickers":["AAPL","MSFT","NVDA","AMZN","GOOGL","META","JPM","XOM","WMT","SHAK"],"fomc_dates_note":"Update each December from federalreserve.gov/monetarypolicy/fomccalendars.htm","fomc_dates":["2026-01-28","2026-03-18","2026-04-29","2026-06-17","2026-07-29","2026-09-16","2026-10-28","2026-12-09"],"rss_feeds":[{"source":"WSJ Markets","url":"https://feeds.content.dowjones.io/public/rss/RSSMarketsMain"},{"source":"CNBC","url":"https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=100003114"},{"source":"MarketWatch","url":"https://feeds.content.dowjones.io/public/rss/mw_topstories"}],"reading_rail":{"Daily":[{"name":"WSJ Markets","url":"https://www.wsj.com/finance"},{"name":"Axios Macro","url":"https://www.axios.com/newsletters/axios-macro"},{"name":"Bloomberg Markets","url":"https://www.bloomberg.com/markets"},{"name":"Money Stuff (Levine)","url":"https://www.bloomberg.com/account/newsletters/money-stuff"},{"name":"CME FedWatch","url":"https://www.cmegroup.com/markets/interest-rates/cme-fedwatch-tool.html"}],"Weekly":[{"name":"JPM Weekly Market Recap (PDF)","url":"https://am.jpmorgan.com/content/dam/jpm-am-aem/americas/us/en/insights/market-insights/wmr/weekly_market_recap.pdf"},{"name":"JPM Weekly Market Recap (page)","url":"https://am.jpmorgan.com/us/en/asset-management/adv/insights/market-insights/market-updates/weekly-market-recap/"},{"name":"Notes on the Week Ahead \u2014 David Kelly","url":"https://am.jpmorgan.com/us/en/asset-management/adv/insights/market-insights/market-updates/notes-on-the-week-ahead/"},{"name":"Barron's","url":"https://www.barrons.com"},{"name":"Economist \u2014 Finance","url":"https://www.economist.com/finance-and-economics"},{"name":"The Transcript","url":"https://thetranscript.substack.com"},{"name":"Odd Lots (podcast)","url":"https://www.bloomberg.com/oddlots"},{"name":"LCD leveraged loan news","url":"https://pitchbook.com/news/lcd"}],"Monthly / Quarterly":[{"name":"JPM Guide to the Markets","url":"https://am.jpmorgan.com/us/en/asset-management/adv/insights/market-insights/guide-to-the-markets/"},{"name":"Howard Marks memos","url":"https://www.oaktreecapital.com/insights/memos"},{"name":"Damodaran \u2014 Musings","url":"https://aswathdamodaran.blogspot.com"},{"name":"Damodaran \u2014 data & valuations","url":"https://pages.stern.nyu.edu/~adamodar/"},{"name":"FOMC projections (SEP)","url":"https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"},{"name":"Fed Financial Stability Report","url":"https://www.federalreserve.gov/publications/financial-stability-report.htm"},{"name":"Shiller CAPE ratio","url":"https://www.multpl.com/shiller-pe"},{"name":"FactSet Earnings Insight","url":"https://insight.factset.com/topic/earnings"}],"Primary sources":[{"name":"FOMC statements","url":"https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"},{"name":"Fed speakers","url":"https://www.federalreserve.gov/newsevents/calendar.htm"},{"name":"BLS releases","url":"https://www.bls.gov/schedule/news_release/"},{"name":"BEA releases","url":"https://www.bea.gov/news/schedule"},{"name":"Treasury auctions","url":"https://www.treasurydirect.gov/auctions/upcoming/"},{"name":"FRED","url":"https://fred.stlouisfed.org"}]},"field_guide":{"DGS10":"The 10-year Treasury yield \u2014 the price of money for the whole economy. It anchors mortgage rates, corporate borrowing costs, and every DCF discount rate. Rising = growth/inflation expectations or heavy supply; falling = flight to safety or rate-cut bets.","curve":"The yield curve plots Treasury yields by maturity. Upward-sloping is normal (you get paid to lend longer). Watch how it shifts vs. 1M and 1Y ago: bull steepening (short end falls) = cuts coming; bear steepening (long end rises) = inflation/supply worries.","2s10s":"10Y minus 2Y yield. Negative (inverted) has preceded most modern recessions, though with long and variable lags \u2014 and the re-steepening after inversion is historically the more dangerous phase. Direction matters more than any single reading.","3m10y":"10Y minus 3M yield \u2014 the Fed's preferred recession-signal spread. Inversion here means markets expect the Fed to be cutting within a year. Cleaner signal than 2s10s but noisier around policy turns.","fed_funds":"The Fed's policy target range \u2014 the rate banks pay overnight. Everything else prices off it. The level tells you where policy is; the FOMC countdown and FedWatch odds tell you where it's going.","SOFR":"Secured Overnight Financing Rate \u2014 the actual traded cost of overnight cash against Treasury collateral, and the replacement for LIBOR. If SOFR drifts above the Fed's range, funding markets are stressed (worth knowing before anyone else does).","breakevens":"Nominal Treasury yield minus TIPS yield = the market's implied average inflation over that horizon. If 10Y breakeven is ~2.3%, the bond market expects inflation near target. Breakevens moving up while the Fed holds = credibility question.","IG":"Investment-grade corporate spread (option-adjusted, over Treasuries). The extra yield for lending to quality companies. Tight = confidence and easy financing; widening IG is a slow, serious warning because IG moves last.","HY":"High-yield (junk) spread \u2014 the market's clearest real-time gauge of credit risk appetite and default expectations. Sub-300bps is historically tight (complacent); 500+ is stress; 800+ is crisis. Watch the percentile, not the raw number.","CCC":"Spread on the riskiest rated credit. CCCs decompress (blow out vs. BBs) before broad HY does \u2014 the canary. If HY looks calm but CCC is widening, the weakest borrowers are already losing access to capital.","hy_ig":"HY minus IG spread \u2014 the decompression gauge. Widening gap = investors fleeing risk within credit even if both are 'okay.' A cleaner risk-appetite read than either spread alone.","vix":"30-day implied volatility on the S&P 500 \u2014 the price of insurance. Under 15 calm, 15\u201320 normal, 20\u201330 elevated, 30+ stressed. Low VIX for months breeds leverage; the unwind is the story, not the spike itself.","200dma":"Whether the index sits above its 200-day moving average \u2014 the simplest trend filter in existence. Above = uptrend intact, dips get bought. Below = trend broken, rallies get sold. Not a timing tool; a regime tool.","sectors":"Daily sector returns reveal the market's message: cyclicals (energy, industrials, financials) leading = growth optimism; defensives (staples, utilities, healthcare) leading = fear; tech leading everything = liquidity chasing duration.","global":"What happened while you slept. Asia closes before the US open, Europe overlaps the morning. A red Asia/Europe board usually sets the US tone at the bell \u2014 and explains most 'mystery' gap opens.","dxy":"Dollar index vs. major currencies. Strong dollar = tighter global financial conditions (EM debt stress, commodity headwinds, US earnings drag from abroad). The dollar is the world's risk thermostat.","wti":"US crude benchmark. Oil is both an inflation input and a growth signal \u2014 rising on demand is fine, rising on supply shocks is stagflationary. Feeds directly into CPI and consumer psychology at the pump.","gold":"The anti-confidence asset: bid when real yields fall or trust in policy erodes. Gold rallying alongside stocks usually means markets expect easier money ahead.","copper":"\"Dr. Copper\" \u2014 in everything from housing to grids, so it front-runs global industrial demand. Strong copper = real economy humming.","copper_gold":"Copper/gold ratio \u2014 growth vs. fear in one number. Rising = reflation, and it historically tracks the 10Y yield. Falling while stocks rise = a divergence worth respecting.","btc":"Bitcoin \u2014 in practice a high-beta liquidity gauge. It sniffs out changes in dollar liquidity and risk appetite before equities do. Whatever your view of it, it's information.","cpi":"Consumer Price Index YoY \u2014 the headline inflation print, released mid-month for the prior month. The single biggest recurring market-mover on the calendar alongside jobs day.","core_cpi":"CPI ex food & energy \u2014 the trend signal the Fed actually steers by, since food/energy are volatile and mean-reverting. Sticky core = higher-for-longer.","core_pce":"The Fed's official 2% target measure (broader weights than CPI, notably healthcare and housing). When Powell says 'inflation,' he means this number.","unrate":"The unemployment rate. Lags the cycle but defines it: a rise of ~0.5pp from the low has never been a soft landing (see Sahm rule below).","nfp":"Nonfarm payrolls \u2014 monthly jobs added, first Friday of the month. The healthy-replacement pace shifts with immigration and demographics; watch revisions and the 3-month average, not the headline alone.","gdp":"Real GDP growth, quarter-over-quarter annualized. Backward-looking but sets the narrative. ~2% is trend for the modern US economy.","sahm":"Sahm rule: when the 3-month average unemployment rate rises 0.50pp above its 12-month low, a recession has effectively always begun. One of the few indicators with a near-perfect historical record \u2014 a triggered Sahm is not noise.","mortgage":"30-year fixed mortgage average \u2014 the 10Y Treasury plus a spread. Sets housing affordability, and for a live-in flip strategy this is your cost-of-capital line item.","case_shiller":"Case-Shiller national home price index, YoY (reported ~2 months lagged). Home equity is most households' balance sheet; sustained declines change consumer behavior everywhere.","fear_greed":"CNN's composite of momentum, breadth, options skew, junk demand, and safe-haven flows. Useful as a contrarian extreme detector: sub-20 or 80+ readings mark sentiment crowding, not direction.","claims":"Weekly initial jobless claims \u2014 the highest-frequency read on the labor market, out every Thursday. The 4-week average smooths noise; a sustained move above ~250K signals real deterioration well before the monthly jobs report shows it.","continuing":"Continuing claims: people still collecting benefits. Rising continuing claims while initial claims stay flat means the people losing jobs aren't finding new ones \u2014 the hiring rate is what's broken, not the firing rate.","fed_balance":"The Fed's total assets. Expansion (QE) adds liquidity to the system; runoff (QT) drains it. A slow, steady decline is normal policy; a sudden jump means the Fed stepped in to backstop something.","crude_stocks":"US commercial crude oil inventories, reported weekly by the EIA. Builds usually pressure oil prices, draws support them. The single biggest weekly swing factor in energy markets.","BKLN":"Broadly syndicated loans (BSL) \u2014 floating-rate senior bank debt to leveraged borrowers, tracked here via the largest loan ETF. Loans sit above bonds in the capital structure and their coupons float with SOFR, so they hold value when rates rise but suffer when default risk climbs.","SRLN":"An actively managed senior-loan fund. Comparing it against the passive loan ETF shows whether active managers are being rewarded for credit selection in the loan market right now.","BIZD":"Business development companies \u2014 the public window into private credit. BDCs originate direct loans to middle-market firms, so their prices reflect how markets are pricing private-credit risk and NAV marks. When BDCs sell off while HY holds firm, worry about the private side.","HYG":"The high-yield bond ETF. Price-based and total-return-oriented, so it captures both spread and rate moves \u2014 read it alongside the HY OAS spread, which strips out the Treasury component.","LQD":"Investment-grade corporate bond ETF. Long duration means it trades more on rates than on credit; a big LQD drawdown is usually a rates story, not a default story.","EMB":"Emerging-market sovereign debt in dollars. Highly sensitive to the dollar and global risk appetite \u2014 a strong DXY is a headwind for EM debt almost mechanically.","TLT":"20+ year Treasury ETF \u2014 the purest duration exposure available. Its drawdowns are the clearest illustration of what long-bond interest-rate risk actually costs.","corp_profits":"National-accounts corporate profits \u2014 the economy-wide earnings picture, cleaner than index EPS because it isn't distorted by buybacks or index composition. Profits usually turn down before employment does.","debt_gdp":"Federal debt as a share of GDP. The level itself doesn't force a crisis; the trajectory plus the interest burden is what shapes long-term rates, term premium, and the dollar.","m2":"M2 money supply growth. Rapid expansion preceded the 2021\u201322 inflation; outright contraction is historically rare and disinflationary. A slow-moving but important backdrop variable.","savings":"Personal savings rate. Low savings means consumption is running on income and credit with no cushion \u2014 it tells you how fragile consumer spending is to a job-market shock.","umcsent":"University of Michigan consumer sentiment. Weakly correlated with actual spending, but it moves politics and it captures inflation expectations, which the Fed watches closely.","indpro":"Industrial production \u2014 the factory-and-mines side of the economy. Small share of GDP, outsized share of cyclical swings, so it's a useful early cycle indicator.","houst":"Housing starts, annualized. Housing is the most rate-sensitive sector in the economy, which makes starts the fastest read on whether monetary policy is actually biting.","retail":"Retail sales growth \u2014 roughly 70% of the US economy is the consumer, so this is the demand pulse. Compare it to inflation: nominal growth below CPI means real spending is shrinking.","longrun":"Full-history context. The point isn't today's number, it's where today sits in the distribution of everything that came before \u2014 the percentile is the insight."}}</script>
+
+<script>
+"use strict";
+const $ = (s, el=document) => el.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const sgn = v => v > 0 ? "+" : "";
+const cls = v => v > 0 ? "up" : v < 0 ? "down" : "dim";
+const num = (v, d=2) => v==null ? "—" : Number(v).toLocaleString("en-US",{minimumFractionDigits:0,maximumFractionDigits:d});
+const pc  = v => v==null ? "—" : `${sgn(v)}${Number(v).toFixed(1)}%`;
+const bp  = v => v==null ? "—" : `${sgn(v)}${Math.round(v)}`;
+const ord = n => { const s=["th","st","nd","rd"], v=n%100; return n+(s[(v-20)%10]||s[v]||s[0]); };
+const dstr = iso => iso ? new Date(iso+"T12:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric"}) : "";
+const relTime = iso => {
+  if(!iso) return "";
+  const m = Math.round((Date.now()-new Date(iso).getTime())/60000);
+  if(!isFinite(m)||m<0) return "";
+  return m<60 ? m+"m ago" : m<1440 ? Math.round(m/60)+"h ago" : Math.round(m/1440)+"d ago";
+};
+
+let D = {}, C = {};
+
+/* ---------- sparkline. tone: 'auto' (green up) | 'neutral' (gold) ---------- */
+function spark(vals, tone="auto", w=74, h=22){
+  if(!vals || vals.length<2) return "";
+  const min=Math.min(...vals), max=Math.max(...vals), span=(max-min)||1;
+  const pts=vals.map((v,i)=>`${(i/(vals.length-1)*(w-2)+1).toFixed(1)},${(h-3-((v-min)/span)*(h-6)).toFixed(1)}`).join(" ");
+  const col = tone==="neutral" ? "var(--gold)" : (vals[vals.length-1]>=vals[0] ? "var(--up)" : "var(--down)");
+  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" aria-hidden="true">
+    <polyline points="${pts}" fill="none" stroke="${col}" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round"/></svg>`;
+}
+
+/* ---------- yield curve, sized so type never scales up ---------- */
+function curveChart(cv, cv1m, cv1y){
+  const K=["3M","2Y","5Y","10Y","30Y"], w=500, h=190, L=34, R=14, T=26, B=30;
+  const all=[...Object.values(cv||{}),...Object.values(cv1m||{}),...Object.values(cv1y||{})].filter(v=>v!=null);
+  if(all.length<2) return "";
+  let min=Math.min(...all), max=Math.max(...all);
+  const padY=Math.max(.15,(max-min)*.15); min-=padY; max+=padY;
+  const x=i=>L+i*((w-L-R)/(K.length-1));
+  const y=v=>T+(h-T-B)*(1-(v-min)/(max-min));
+  const ticks=[min,(min+max)/2,max];
+  const grid=ticks.map(t=>`<line x1="${L}" y1="${y(t).toFixed(1)}" x2="${w-R}" y2="${y(t).toFixed(1)}"
+      stroke="rgba(206,184,136,.10)" stroke-width="1"/>
+    <text x="${L-6}" y="${(y(t)+3.5).toFixed(1)}" text-anchor="end" fill="rgba(206,184,136,.55)"
+      font-size="10" font-family="ui-monospace,monospace">${t.toFixed(2)}</text>`).join("");
+  const line=(c,col,wd,dash)=> c ? `<polyline points="${K.map((k,i)=>c[k]!=null?`${x(i)},${y(c[k]).toFixed(1)}`:"").filter(Boolean).join(" ")}"
+      fill="none" stroke="${col}" stroke-width="${wd}" stroke-linejoin="round" ${dash?`stroke-dasharray="${dash}"`:""}/>` : "";
+  const dots=K.map((k,i)=>cv&&cv[k]!=null?`<circle cx="${x(i)}" cy="${y(cv[k]).toFixed(1)}" r="3" fill="var(--gold-hi)"/>`:"").join("");
+  const xl=K.map((k,i)=>`<text x="${x(i)}" y="${h-11}" fill="rgba(206,184,136,.6)" font-size="10.5"
+      text-anchor="middle" font-family="ui-monospace,monospace">${k}</text>`).join("");
+  const key=(lx,lbl,col,dash)=>`<line x1="${lx}" y1="13" x2="${lx+14}" y2="13" stroke="${col}" stroke-width="2"
+      ${dash?`stroke-dasharray="${dash}"`:""}/>
+    <text x="${lx+18}" y="16.5" font-size="10" font-family="ui-monospace,monospace" fill="rgba(206,184,136,.6)">${lbl}</text>`;
+  return `<svg width="100%" viewBox="0 0 ${w} ${h}" role="img" aria-label="Treasury yield curve">
+    ${grid}${line(cv1y,"rgba(206,184,136,.28)",1.4,"4 4")}${line(cv1m,"rgba(143,227,220,.55)",1.4)}
+    ${line(cv,"var(--gold)",2.2)}${dots}${xl}
+    ${key(w-190,"now","var(--gold)")}${key(w-135,"1M ago","rgba(143,227,220,.55)")}${key(w-62,"1Y ago","rgba(206,184,136,.28)","4 4")}
+  </svg>`;
+}
+
+function lrChart(vals, w=260, h=54){
+  if(!vals||vals.length<2) return "";
+  const min=Math.min(...vals), max=Math.max(...vals), span=(max-min)||1;
+  const pts=vals.map((v,i)=>`${(i/(vals.length-1)*w).toFixed(1)},${(h-2-((v-min)/span)*(h-4)).toFixed(1)}`).join(" ");
+  const lx=(vals.length-1)/(vals.length-1)*w, ly=h-2-((vals[vals.length-1]-min)/span)*(h-4);
+  return `<svg width="100%" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-hidden="true" style="height:${h}px">
+    <polyline points="${pts}" fill="none" stroke="var(--gold)" stroke-width="1.3" vector-effect="non-scaling-stroke"/>
+    <circle cx="${lx-2}" cy="${ly.toFixed(1)}" r="2.4" fill="var(--gold-hi)"/></svg>`;
+}
+
+/* ---------- row builder: always emits 5 grid cells ---------- */
+function row(o){
+  const info = o.fg ? `<span class="info" data-fg="${o.fg}" role="button" tabindex="0" aria-label="What is ${esc(o.name)}?">i</span>` : "";
+  const flag = o.flag || "";
+  return `<div class="row">
+    <span class="c-name"><span class="t">${esc(o.name)}</span>${flag}${info}</span>
+    <span class="c-spark">${o.sp ? spark(o.sp, o.tone||"auto") : ""}</span>
+    <span class="c-val">${o.val ?? "—"}</span>
+    <span class="c-delta ${o.deltaCls||""}">${o.delta ?? ""}</span>
+    <span class="c-sub ${o.subCls||""}">${o.sub ?? ""}</span>
+  </div>`;
+}
+const panel = (title, body, span="s6", right="", hero=false) =>
+  `<section class="panel ${span}${hero?" hero":""}"><div class="eyebrow">${title}
+    ${right?`<span class="right">${right}</span>`:""}</div>${body}</section>`;
+const card = (key,label,big,meta,alert) =>
+  `<div class="card${alert?" alert":""}" ${key?`data-fg="${key}" role="button" tabindex="0"`:""}>
+    <span class="lbl">${label}</span><span class="big">${big}</span><span class="meta">${meta||""}</span></div>`;
+const stat = (key,label,big,meta,alert) =>
+  `<div class="stat${alert?" alert":""}" ${key?`data-fg="${key}" role="button" tabindex="0"`:""}>
+    <span class="lbl">${label}</span><span class="big">${big}</span><span class="meta">${meta||""}</span></div>`;
+const trendFlag = v => v==null ? "" : `<span class="flag ${v?"on":"off"}">${v?"↑200d":"↓200d"}</span>`;
+
+/* ---------- regime strip ---------- */
+function regimeStrip(){
+  const c=[];
+  const s=D.rates?.spreads?.["2s10s"]?.bps;
+  if(s!=null) c.push(`<span class="chip ${s<0?"down":""}">Curve ${s<0?"inverted ":""}${bp(s)}bp</span>`);
+  const vx=D.equities?.vix;
+  if(vx) c.push(`<span class="chip ${vx.regime==="elevated"||vx.regime==="stressed"?"down":""}">VIX ${vx.last.toFixed(1)} ${vx.regime}</span>`);
+  const hy=D.credit?.HY;
+  if(hy) c.push(`<span class="chip">HY ${hy.bps}bp · ${ord(hy.pctile)} %ile ${hy.pctile<25?"tight":hy.pctile>75?"wide":"fair"}</span>`);
+  if(D.macro?.sahm?.triggered) c.push(`<span class="chip down">SAHM TRIGGERED</span>`);
+  if(D.week?.fomc_days!=null) c.push(`<span class="chip">FOMC in ${D.week.fomc_days}d</span>`);
+  const spx=(D.equities?.indices||[]).find(i=>i.sym==="^GSPC");
+  if(spx?.above_200dma!=null) c.push(`<span class="chip ${spx.above_200dma?"up":"down"}">SPX ${spx.above_200dma?"above":"below"} 200dma</span>`);
+  const fg=D.sentiment?.fear_greed;
+  if(fg) c.push(`<span class="chip">${esc(fg.label)} ${fg.score}</span>`);
+  return c.join(`<span class="sep">·</span>`);
+}
+
+/* ================= DASHBOARD — the back-of-hand numbers ================= */
+function pBigSix(){
+  const r=D.rates||{}, e=D.equities||{}, hy=D.credit?.HY, fx=(D.fx_cmdty||[]).find(x=>x.sym==="DX-Y.NYB");
+  const spx=(e.indices||[]).find(i=>i.sym==="^GSPC");
+  let b=`<div class="cards">`;
+  if(r.ten_year) b+=card("DGS10","10-Year Treasury", r.ten_year.value.toFixed(2)+"%",
+    `${bp(r.ten_year.chg_1d*100)}bp today · ${bp(r.ten_year.chg_1m*100)}bp 1M`);
+  if(r.fed?.lower!=null) b+=card("fed_funds","Fed funds", `${r.fed.lower.toFixed(2)}–${r.fed.upper.toFixed(2)}%`,
+    D.week?.fomc_days!=null?`FOMC in ${D.week.fomc_days} days`:"");
+  if(spx) b+=card(null,"S&P 500", num(spx.last,0),
+    `${pc(spx.chg_1d_pct)} today · ${pc(spx.ytd_pct)} YTD`);
+  if(e.vix) b+=card("vix","VIX", e.vix.last.toFixed(1), `${e.vix.regime} regime`, e.vix.last>=25);
+  if(hy) b+=card("HY","High-yield spread", hy.bps+"bp", `${ord(hy.pctile)} percentile since 2000`);
+  if(fx) b+=card("dxy","Dollar index", fx.last.toFixed(2), `${pc(fx.chg_1d_pct)} today · ${pc(fx.ytd_pct)} YTD`);
+  b+=`</div>`;
+  return panel("Know these cold", b, "s12", "checked daily", true);
+}
+function pCurveMini(){
+  const r=D.rates||{}, sp=r.spreads||{};
+  if(!r.curve) return "";
+  let b=`<div class="chartwrap">${curveChart(r.curve,r.curve_1m,r.curve_1y)}</div>`;
+  if(sp["2s10s"]) b+=row({name:"2s10s spread",fg:"2s10s",sp:sp["2s10s"].spark,tone:"neutral",
+    val:bp(sp["2s10s"].bps)+"bp",delta:sp["2s10s"].bps<0?"inverted":"normal",deltaCls:sp["2s10s"].bps<0?"down":"dim"});
+  if(sp["3m10y"]) b+=row({name:"3m10y spread",fg:"3m10y",sp:sp["3m10y"].spark,tone:"neutral",
+    val:bp(sp["3m10y"].bps)+"bp",delta:sp["3m10y"].bps<0?"inverted":"normal",deltaCls:sp["3m10y"].bps<0?"down":"dim"});
+  return panel(`The curve <span class="info" data-fg="curve" role="button" tabindex="0">i</span>`, b, "s7");
+}
+function pNextUp(){
+  const w=D.week||{};
+  let b="";
+  if(w.fomc_days!=null) b+=`<div class="countdown"><span class="big">${w.fomc_days}d</span>
+    <span class="dim">to the FOMC decision · ${dstr(w.fomc_next)}</span></div>`;
+  const rel=(w.releases||[]).slice(0,4);
+  for(const r of rel) b+=row({name:r.name,val:dstr(r.date)});
+  if(!rel.length && w.fomc_days==null) b=`<div class="empty">No scheduled events in this snapshot.</div>`;
+  return panel("Next up", b, "s5");
+}
+function pHeadlines(limit, span="s12"){
+  const items=(D.headlines||[]).slice(0,limit).map(h=>
+    `<div class="hl"><a href="${esc(h.link)}" target="_blank" rel="noopener">${esc(h.title)}</a>
+     <div class="meta"><b>${esc(h.source)}</b>${h.ts?` · ${relTime(h.ts)}`:""}</div></div>`).join("");
+  return panel("Headlines", items||`<div class="empty">No headlines in this snapshot.</div>`, span);
+}
+
+/* ================= DAILY ================= */
+function pRates(){
+  const r=D.rates||{}, f=r.fed||{}, be=r.breakevens||{}, sp=r.spreads||{};
+  let b=`<div class="chartwrap">${curveChart(r.curve,r.curve_1m,r.curve_1y)}</div>`;
+  if(r.ten_year) b+=row({name:"10Y Treasury",fg:"DGS10",sp:r.ten_year.spark,tone:"neutral",
+    val:r.ten_year.value.toFixed(2)+"%",delta:bp(r.ten_year.chg_1d*100)+"bp",deltaCls:cls(-r.ten_year.chg_1d),
+    sub:bp(r.ten_year.chg_1m*100)+"bp 1M"});
+  if(sp["2s10s"]) b+=row({name:"2s10s spread",fg:"2s10s",sp:sp["2s10s"].spark,tone:"neutral",
+    val:bp(sp["2s10s"].bps)+"bp",delta:sp["2s10s"].bps<0?"inverted":"normal",deltaCls:sp["2s10s"].bps<0?"down":"dim"});
+  if(sp["3m10y"]) b+=row({name:"3m10y spread",fg:"3m10y",sp:sp["3m10y"].spark,tone:"neutral",
+    val:bp(sp["3m10y"].bps)+"bp",delta:sp["3m10y"].bps<0?"inverted":"normal",deltaCls:sp["3m10y"].bps<0?"down":"dim"});
+  if(f.lower!=null) b+=row({name:"Fed funds target",fg:"fed_funds",val:`${f.lower.toFixed(2)}–${f.upper.toFixed(2)}%`,
+    sub:`<a href="https://www.cmegroup.com/markets/interest-rates/cme-fedwatch-tool.html" target="_blank" rel="noopener">FedWatch ↗</a>`});
+  if(f.sofr!=null) b+=row({name:"SOFR",fg:"SOFR",val:f.sofr.toFixed(2)+"%"});
+  if(be["10Y"]!=null) b+=row({name:"Inflation breakevens",fg:"breakevens",
+    val:`${be["5Y"]?.toFixed(2)??"—"} / ${be["10Y"].toFixed(2)}%`,sub:"5Y / 10Y"});
+  return panel(`Rates &amp; Fed <span class="info" data-fg="curve" role="button" tabindex="0">i</span>`, b, "s7");
+}
+function pCredit(){
+  const c=D.credit||{}; let b="";
+  for(const [k,l] of [["IG","IG spread (OAS)"],["HY","High yield (OAS)"],["CCC","CCC & lower"]]){
+    const v=c[k]; if(!v) continue;
+    const t=v.pctile<25?"tight":v.pctile>75?"wide":"";
+    b+=row({name:l,fg:k,sp:v.spark,tone:"neutral",val:v.bps+"bp",delta:bp(v.chg_1d),deltaCls:cls(-v.chg_1d),
+      sub:`<span class="pctile ${t}">${ord(v.pctile)}</span>`});
+  }
+  if(c.hy_minus_ig!=null) b+=row({name:"HY − IG decompression",fg:"hy_ig",val:c.hy_minus_ig+"bp"});
+  return panel("Credit", b||`<div class="empty">Credit data unavailable.</div>`, "s5", "%ile since 2000");
+}
+function pEquities(){
+  const e=D.equities||{}; let b="";
+  for(const i of e.indices||[]) b+=row({name:i.name,sp:i.spark,val:num(i.last,0),flag:trendFlag(i.above_200dma),
+    delta:pc(i.chg_1d_pct),deltaCls:cls(i.chg_1d_pct),sub:pc(i.ytd_pct)+" ytd",subCls:cls(i.ytd_pct)});
+  if(e.vix) b+=row({name:`VIX — ${e.vix.regime}`,fg:"vix",sp:e.vix.spark,tone:"neutral",val:e.vix.last.toFixed(1),
+    delta:pc(e.vix.chg_1d_pct),deltaCls:cls(-e.vix.chg_1d_pct)});
+  if(e.sectors?.length) b+=`<div class="sectors">`+e.sectors.map(s=>
+    `<div class="sector ${s.chg_1d_pct>0?"pos":s.chg_1d_pct<0?"neg":""}"><span class="sn">${esc(s.name)}</span>
+     <span class="sv ${cls(s.chg_1d_pct)}">${pc(s.chg_1d_pct)}</span></div>`).join("")+`</div>`;
+  return panel(`Equities &amp; risk <span class="info" data-fg="sectors" role="button" tabindex="0">i</span>`,
+    b, "s7", "flag = vs 200-day avg");
+}
+function pGlobal(){
+  const b=(D.global||[]).map(g=>row({name:g.name,val:num(g.last,0),delta:pc(g.chg_1d_pct),
+    deltaCls:cls(g.chg_1d_pct),sub:pc(g.ytd_pct)+" ytd",subCls:cls(g.ytd_pct)})).join("");
+  return panel(`Overnight &amp; global <span class="info" data-fg="global" role="button" tabindex="0">i</span>`,
+    b||`<div class="empty">No global data.</div>`, "s5");
+}
+const FGK={"DX-Y.NYB":"dxy","CL=F":"wti","GC=F":"gold","HG=F":"copper","BTC-USD":"btc"};
+function pFX(){
+  let b=(D.fx_cmdty||[]).map(x=>row({name:x.name,fg:FGK[x.sym],sp:x.spark,val:num(x.last,2),
+    delta:pc(x.chg_1d_pct),deltaCls:cls(x.chg_1d_pct),sub:pc(x.ytd_pct)+" ytd",subCls:cls(x.ytd_pct)})).join("");
+  if(D.copper_gold) b+=row({name:"Copper / gold ×1000",fg:"copper_gold",sp:D.copper_gold.spark,tone:"neutral",
+    val:D.copper_gold.value.toFixed(2)});
+  return panel("FX · commodities · crypto", b, "s7");
+}
+function pWatchlist(){
+  const b=(D.watchlist||[]).map(x=>{
+    const p=x.wk52_high>x.wk52_low?((x.last-x.wk52_low)/(x.wk52_high-x.wk52_low)*100):50;
+    return row({name:x.sym,sp:x.spark,val:num(x.last,2),delta:pc(x.chg_1d_pct),deltaCls:cls(x.chg_1d_pct),
+      sub:`<span class="range" title="52-week range"><i style="left:${p.toFixed(0)}%"></i></span>`});
+  }).join("");
+  return panel("Watchlist", b||`<div class="empty">Add tickers in config.json.</div>`, "s5", "52-week range →");
+}
+function pSentiment(){
+  const fg=D.sentiment?.fear_greed;
+  if(!fg) return "";
+  return panel("Sentiment", `<div class="stats">${stat("fear_greed","CNN Fear &amp; Greed",fg.score,esc(fg.label))}</div>`, "s4");
+}
+
+/* ================= WEEKLY ================= */
+function pWeekBoard(){
+  const rows=[...(D.equities?.indices||[]),...(D.global||[]).slice(0,3)];
+  const b=rows.map(i=>row({name:i.name,val:num(i.last,0),delta:pc(i.chg_5d_pct),deltaCls:cls(i.chg_5d_pct),
+    sub:pc(i.chg_1mo_pct)+" 1M",subCls:cls(i.chg_1mo_pct)})).join("");
+  return panel("The week in equities", b||`<div class="empty">No data.</div>`, "s6", "5-day · 1-month", true);
+}
+function pCreditMarkets(){
+  const b=(D.credit_etfs||[]).map(x=>row({name:x.name,fg:x.sym,sp:x.spark,val:num(x.last,2),
+    delta:pc(x.chg_5d_pct),deltaCls:cls(x.chg_5d_pct),sub:pc(x.ytd_pct)+" ytd",subCls:cls(x.ytd_pct)})).join("");
+  const c=D.credit||{};
+  let sp="";
+  for(const [k,l] of [["HY","HY spread"],["IG","IG spread"]]){
+    if(c[k]) sp+=row({name:l+" (OAS)",fg:k,sp:c[k].spark,tone:"neutral",val:c[k].bps+"bp",
+      delta:bp(c[k].chg_1m)+" 1M",deltaCls:cls(-c[k].chg_1m),sub:ord(c[k].pctile)+" %ile"});
+  }
+  return panel("Loan &amp; credit markets", (b||"")+sp || `<div class="empty">No data.</div>`, "s6", "BSL · BDC · bonds");
+}
+function pWeeklyData(){
+  const w=D.weekly||{}, m=D.macro||{};
+  let b=`<div class="stats">`;
+  if(w.claims) b+=stat("claims","Initial claims", num(w.claims.value,0)+"K",
+    `${sgn(w.claims.chg)}${num(w.claims.chg,0)}K wk · 4wk avg ${w.claims_4wk??"—"}K`);
+  if(w.continuing) b+=stat("continuing","Continuing claims", w.continuing.value.toFixed(2)+"M", dstr(w.continuing.asof));
+  if(m.mortgage30) b+=stat("mortgage","30Y mortgage", m.mortgage30.value.toFixed(2)+"%",
+    `${bp(m.mortgage30.chg_wk*100)}bp this week`);
+  if(w.fed_balance) b+=stat("fed_balance","Fed balance sheet","$"+w.fed_balance.value.toFixed(2)+"T",
+    `${sgn(w.fed_balance.chg)}${w.fed_balance.chg.toFixed(2)}T wk`);
+  if(w.crude_stocks) b+=stat("crude_stocks","Crude inventories", num(w.crude_stocks.value,0)+"M bbl",
+    `${sgn(w.crude_stocks.chg)}${w.crude_stocks.chg.toFixed(1)}M wk`);
+  b+=`</div>`;
+  return panel("Weekly data releases", b, "s6", "claims Thu · EIA Wed");
+}
+function pCalendar(){
+  const w=D.week||{}; let b="";
+  if(w.fomc_days!=null) b+=`<div class="countdown"><span class="big">${w.fomc_days}d</span>
+    <span class="dim">to the FOMC decision · ${dstr(w.fomc_next)}</span></div>`;
+  for(const r of w.releases||[]) b+=row({name:r.name,val:dstr(r.date)});
+  for(const e of w.earnings||[]) b+=row({name:`${e.sym} earnings`,val:dstr(e.date)});
+  b+=`<div class="links">
+    <a href="https://www.treasurydirect.gov/auctions/upcoming/" target="_blank" rel="noopener">Treasury auctions ↗</a>
+    <a href="https://www.federalreserve.gov/newsevents/calendar.htm" target="_blank" rel="noopener">Fed speakers ↗</a>
+    <a href="https://www.bls.gov/schedule/news_release/" target="_blank" rel="noopener">BLS schedule ↗</a>
+    <a href="https://www.bea.gov/news/schedule" target="_blank" rel="noopener">BEA schedule ↗</a></div>`;
+  return panel("Three weeks ahead", b, "s6");
+}
+
+/* ================= QUARTERLY ================= */
+function pLongRun(){
+  const lr=D.quarterly?.longrun||{};
+  const defs=[["dgs10","10-year Treasury yield","%",2],["hy","High-yield spread","bp",0],
+              ["unrate","Unemployment rate","%",1],["cpi","CPI inflation, YoY","%",1]];
+  const cards=defs.filter(([k])=>lr[k]).map(([k,label,unit,dg])=>{
+    const s=lr[k];
+    return `<div class="lr"><div class="lrh"><span class="lrt">${label}</span>
+      <span class="lrv">${num(s.last,dg)}${unit==="bp"?"bp":unit}</span></div>
+      ${lrChart(s.spark)}
+      <div class="lrf"><span>since ${s.since}</span><b>${ord(s.pctile)} percentile · range ${num(s.min,dg)}–${num(s.max,dg)}</b></div></div>`;
+  }).join("");
+  return panel(`The long view <span class="info" data-fg="longrun" role="button" tabindex="0">i</span>`,
+    cards ? `<div class="longrun">${cards}</div>` : `<div class="empty">No long-run series in this snapshot.</div>`,
+    "s12", "where today sits in history", true);
+}
+function pBigPicture(){
+  const m=D.macro||{}; let b=`<div class="stats">`;
+  if(m.gdp) b+=stat("gdp","GDP QoQ", m.gdp.qoq_saar+"%","annualized · "+dstr(m.gdp.asof));
+  if(m.core_pce) b+=stat("core_pce","Core PCE", m.core_pce.yoy+"%","Fed target 2%");
+  if(m.cpi) b+=stat("cpi","CPI YoY", m.cpi.yoy+"%", dstr(m.cpi.asof));
+  if(m.unrate) b+=stat("unrate","Unemployment", m.unrate.value+"%", dstr(m.unrate.asof));
+  if(m.nfp) b+=stat("nfp","Payrolls", `${sgn(m.nfp.chg_k)}${m.nfp.chg_k}K`, dstr(m.nfp.asof));
+  if(m.sahm) b+=stat("sahm","Sahm rule", m.sahm.value.toFixed(2), m.sahm.triggered?"TRIGGERED":"trips at 0.50", m.sahm.triggered);
+  if(m.case_shiller) b+=stat("case_shiller","Home prices", m.case_shiller.yoy+"%","Case-Shiller YoY");
+  b+=`</div>`;
+  return panel("Where the economy stands", b, "s12", "", true);
+}
+function pStructural(){
+  const q=D.quarterly?.stats||[];
+  if(!q.length) return panel("Structural indicators", `<div class="empty">No data.</div>`, "s12");
+  const b=`<div class="stats">`+q.map(s=>stat(s.key,esc(s.label),
+    num(s.value, s.unit==="K SAAR"?0:1)+(s.unit==="%"||s.unit==="% YoY"?"%":""),
+    `${s.unit==="index"?"index · ":""}${dstr(s.asof)}`)).join("")+`</div>`;
+  return panel("Structural indicators", b, "s12", "quarterly / monthly");
+}
+
+/* ================= reading rails ================= */
+function pRail(groups, span="s12", title="Reading"){
+  const g=C.reading_rail||{};
+  const use=groups.filter(k=>g[k]?.length);
+  if(!use.length) return "";
+  const b=`<div class="rail">`+use.map(k=>
+    `<div><h4>${esc(k)}</h4><ul>${g[k].map(l=>
+      `<li><a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.name)}</a></li>`).join("")}</ul></div>`).join("")+`</div>`;
+  return panel(title, b, span);
+}
+function pWeeklyFeature(){
+  const wk=(C.reading_rail?.Weekly)||[];
+  const jpm=wk.find(l=>/weekly market recap \(pdf\)/i.test(l.name)) || wk[0];
+  const kelly=wk.find(l=>/week ahead/i.test(l.name));
+  let b="";
+  if(jpm) b+=`<a class="feature" href="${esc(jpm.url)}" target="_blank" rel="noopener">
+    <span class="ft">J.P. Morgan Weekly Market Recap</span>
+    <span class="fs">one page: returns, chart of the week, what moved ↗</span></a>`;
+  if(kelly) b+=`<a class="feature" href="${esc(kelly.url)}" target="_blank" rel="noopener">
+    <span class="ft">Notes on the Week Ahead</span>
+    <span class="fs">David Kelly · Monday morning read ↗</span></a>`;
+  const rest=wk.filter(l=>l!==jpm&&l!==kelly);
+  if(rest.length) b+=`<div class="links">`+rest.map(l=>
+    `<a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.name)} ↗</a>`).join("")+`</div>`;
+  return panel("Read this week", b, "s6", "", true);
+}
+
+/* ================= tabs ================= */
+const TABS=[
+  {id:"dashboard", label:"Dashboard", render:()=> pBigSix()+pCurveMini()+pNextUp()+pHeadlines(6)},
+  {id:"daily",     label:"Daily",     render:()=> pRates()+pCredit()+pEquities()+pGlobal()+pFX()+pWatchlist()
+                                                 +pSentiment()+pHeadlines(14,"s8")+pRail(["Daily"],"s12","Daily reading")},
+  {id:"weekly",    label:"Weekly",    render:()=> pWeekBoard()+pWeeklyFeature()+pCreditMarkets()+pWeeklyData()
+                                                 +pCalendar()+pRail(["Weekly"],"s6","More weekly reading")},
+  {id:"quarterly", label:"Quarterly", render:()=> pLongRun()+pBigPicture()+pStructural()
+                                                 +pRail(["Monthly / Quarterly","Primary sources"],"s12","Quarterly reading")},
+];
+function showTab(id){
+  const t=TABS.find(x=>x.id===id)||TABS[0];
+  for(const b of document.querySelectorAll("#tabs button")) b.setAttribute("aria-selected", String(b.dataset.tab===t.id));
+  $("#app").innerHTML=t.render();
+  if(location.hash.slice(1)!==t.id) history.replaceState(null,"","#"+t.id);
+  window.scrollTo({top:0,behavior:"instant"});
+}
+function buildTabs(){
+  $("#tabs").innerHTML=TABS.map(t=>
+    `<button role="tab" data-tab="${t.id}" aria-selected="false">${t.label}</button>`).join("")
+    +`<span class="hint">tap any ⓘ for what a number means</span>`;
+  $("#tabs").addEventListener("click", e=>{
+    const b=e.target.closest("button[data-tab]"); if(b) showTab(b.dataset.tab);
+  });
+}
+
+/* ================= field guide ================= */
+function fieldGuide(){
+  const guide=()=>C.field_guide||{};
+  document.addEventListener("click", ev=>{
+    const el=ev.target.closest("[data-fg]"); if(!el) return;
+    const key=el.dataset.fg, txt=guide()[key]; if(!txt) return;
+    const host=el.closest(".row")||el.closest(".card")||el.closest(".stat")||el.closest(".panel");
+    if(!host) return;
+    if(host.classList.contains("row")){
+      const ex=host.querySelector(".fg-note");
+      if(ex){ ex.remove(); return; }
+      const n=document.createElement("div"); n.className="fg-note"; n.textContent=txt; host.appendChild(n);
+    } else {
+      const nx=host.nextElementSibling;
+      if(nx?.classList.contains("fg-note")){ nx.remove(); return; }
+      const n=document.createElement("div"); n.className="fg-note"; n.style.gridColumn="1/-1";
+      n.textContent=txt; host.insertAdjacentElement("afterend", n);
+    }
+  });
+  document.addEventListener("keydown", ev=>{
+    if((ev.key==="Enter"||ev.key===" ")&&ev.target.matches("[data-fg]")){ ev.preventDefault(); ev.target.click(); }
+  });
+}
+
+/* ================= shell ================= */
+function renderHeader(){
+  if(!D.generated_at) return;
+  const d=new Date(D.generated_at);
+  $("#asof").textContent="as of "+d.toLocaleString("en-US",{timeZone:"America/New_York",
+    month:"short",day:"numeric",hour:"numeric",minute:"2-digit"})+" ET";
+  const age=(Date.now()-d.getTime())/60000;
+  $("#badges").innerHTML=(D.sample?`<span class="badge">SAMPLE DATA — run the Update workflow</span>`:"")
+    +(!D.sample&&age>120?`<span class="badge warn">STALE ${Math.round(age/60)}h</span>`:"");
+}
+function renderFoot(){
+  const e=D.errors||[];
+  $("#foot").innerHTML=(e.length?`<details><summary>⚠ ${e.length} source warning${e.length>1?"s":""}</summary>
+    <pre style="white-space:pre-wrap">${esc(e.join("\n"))}</pre></details>`:"")
+    +`updates every 30 min · FRED · Yahoo Finance · WSJ / CNBC / MarketWatch · CNN`;
+}
+async function getJSON(path, fbId){
+  try{
+    const r=await fetch(path+"?t="+Date.now(),{cache:"no-store"});
+    if(!r.ok) throw new Error(r.status);
+    return await r.json();
+  }catch{ return JSON.parse($("#"+fbId).textContent); }
+}
+async function boot(){
+  [C,D]=await Promise.all([getJSON("config.json","fallback-config"),getJSON("data.json","fallback-data")]);
+  renderHeader();
+  const strip=regimeStrip();
+  if(strip){ $("#regime").innerHTML=strip; $("#regime").hidden=false; }
+  buildTabs();
+  fieldGuide();
+  showTab(location.hash.slice(1)||"dashboard");
+  renderFoot();
+}
+boot().catch(e=>{ $("#asof").textContent="load error — see console"; console.error(e); });
+$("#refresh").addEventListener("click",()=>location.reload());
+addEventListener("hashchange",()=>showTab(location.hash.slice(1)||"dashboard"));
+if("serviceWorker" in navigator && (location.protocol==="https:"||location.hostname==="localhost")){
+  addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
+}
+</script>
+</body>
+</html>
