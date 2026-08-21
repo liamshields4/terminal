@@ -111,6 +111,13 @@ header{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding:2px 2px
   box-shadow:0 10px 30px rgba(0,26,31,.5), inset 0 1px 0 rgba(255,255,255,.06)}
 #regime .chip{font-family:var(--mono);font-size:13px;white-space:nowrap;color:var(--gold-hi)}
 #regime .chip.up{color:var(--up)}#regime .chip.down{color:var(--down)}
+#regime .chip[data-fg]{cursor:pointer;border-bottom:1px dotted rgba(206,184,136,.45);
+  padding-bottom:1px;-webkit-tap-highlight-color:transparent}
+#regime .chip[data-fg]:hover,#regime .chip[data-fg].open{color:#fff;border-bottom-color:var(--gold)}
+#regime .fg-note{flex-basis:100%;margin:9px 0 1px;font-size:12.5px}
+#regime .fg-hint{font-family:var(--mono);font-size:10px;color:var(--faint);
+  flex-basis:100%;margin-top:7px;opacity:.8}
+@media(max-width:760px){#regime .fg-hint{margin-top:4px}}
 #regime .sep{color:var(--garnet-hi);margin:0 10px;font-family:var(--mono)}
 @media(max-width:760px){
   #regime{gap:6px 7px;padding:10px}
@@ -348,19 +355,25 @@ const trendFlag = v => v==null ? "" : `<span class="flag ${v?"on":"off"}">${v?"�
 /* ---------- regime strip ---------- */
 function regimeStrip(){
   const c=[];
+  const chip=(key,cls,txt)=>`<span class="chip ${cls}" data-fg="${key}" role="button" tabindex="0">${txt}</span>`;
   const s=D.rates?.spreads?.["2s10s"]?.bps;
-  if(s!=null) c.push(`<span class="chip ${s<0?"down":""}">Curve ${s<0?"inverted ":""}${bp(s)}bp</span>`);
+  if(s!=null) c.push(chip("2s10s", s<0?"down":"", `Curve ${s<0?"inverted ":""}${bp(s)}bp`));
   const vx=D.equities?.vix;
-  if(vx) c.push(`<span class="chip ${vx.regime==="elevated"||vx.regime==="stressed"?"down":""}">VIX ${vx.last.toFixed(1)} ${vx.regime}</span>`);
+  if(vx) c.push(chip("vix", vx.regime==="elevated"||vx.regime==="stressed"?"down":"",
+    `VIX ${vx.last.toFixed(1)} ${vx.regime}`));
   const hy=D.credit?.HY;
-  if(hy) c.push(`<span class="chip">HY ${hy.bps}bp · ${ord(hy.pctile)} %ile ${hy.pctile<25?"tight":hy.pctile>75?"wide":"fair"}</span>`);
-  if(D.macro?.sahm?.triggered) c.push(`<span class="chip down">SAHM TRIGGERED</span>`);
-  if(D.week?.fomc_days!=null) c.push(`<span class="chip">FOMC in ${D.week.fomc_days}d</span>`);
+  if(hy) c.push(chip("HY","",
+    `HY ${hy.bps}bp · ${ord(hy.pctile)} %ile ${hy.pctile<25?"tight":hy.pctile>75?"wide":"fair"}`));
+  if(D.macro?.sahm?.triggered) c.push(chip("sahm","down","SAHM TRIGGERED"));
+  if(D.week?.fomc_days!=null) c.push(chip("fed_funds","",`FOMC in ${D.week.fomc_days}d`));
   const spx=(D.equities?.indices||[]).find(i=>i.sym==="^GSPC");
-  if(spx?.above_200dma!=null) c.push(`<span class="chip ${spx.above_200dma?"up":"down"}">SPX ${spx.above_200dma?"above":"below"} 200dma</span>`);
+  if(spx?.above_200dma!=null) c.push(chip("200dma", spx.above_200dma?"up":"",
+    `SPX ${spx.above_200dma?"above":"below"} 200dma`));
   const fg=D.sentiment?.fear_greed;
-  if(fg) c.push(`<span class="chip">${esc(fg.label)} ${fg.score}</span>`);
-  return c.join(`<span class="sep">·</span>`);
+  if(fg) c.push(chip("fear_greed","",`${esc(fg.label)} ${fg.score}`));
+  if(!c.length) return "";
+  return c.join(`<span class="sep">·</span>`)
+    + `<span class="fg-hint">tap any item above for what it means</span>`;
 }
 
 /* ================= DASHBOARD — the back-of-hand numbers ================= */
@@ -624,7 +637,7 @@ function pMarket(){
 
   const have=order.filter(s=>by[s]?.periods?.[MKT_P]);
   const up=have.filter(s=>by[s].periods[MKT_P].pct>0).length;
-  return panel("Is the market up?",
+  return panel(`Is the market up? <span class="info" data-fg="index_returns" role="button" tabindex="0" aria-label="What do these returns mean?">i</span>`,
     `<div class="pchips" role="group" aria-label="Time period">${chips}</div>${head}${rows}`,
     "s6", have.length?`${up} of ${have.length} up`:"", true);
 }
@@ -661,6 +674,22 @@ function fieldGuide(){
   document.addEventListener("click", ev=>{
     const el=ev.target.closest("[data-fg]"); if(!el) return;
     const key=el.dataset.fg, txt=guide()[key]; if(!txt) return;
+
+    // regime strip: one note at a time, dropped below the chips
+    const strip=el.closest("#regime");
+    if(strip){
+      const open=strip.querySelector(".fg-note");
+      const same=open && open.dataset.fg===key;
+      if(open) open.remove();
+      for(const c of strip.querySelectorAll(".chip.open")) c.classList.remove("open");
+      if(same) return;
+      const n=document.createElement("div");
+      n.className="fg-note"; n.dataset.fg=key; n.textContent=txt;
+      el.classList.add("open");
+      strip.appendChild(n);
+      return;
+    }
+
     const host=el.closest(".row")||el.closest(".card")||el.closest(".stat")||el.closest(".panel");
     if(!host) return;
     if(host.classList.contains("row")){
