@@ -81,6 +81,27 @@ header{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding:2px 2px
 #tabs .hint{margin-left:auto;align-self:center;font-family:var(--mono);font-size:10.5px;color:#0A2C2A;opacity:.75}
 @media(max-width:640px){#tabs .hint{display:none}#tabs button{flex:1 1 auto;padding:7px 8px;font-size:13.5px}}
 
+/* ---------- market up/down ---------- */
+.pchips{display:flex;flex-wrap:wrap;gap:6px;margin:2px 0 13px}
+.pchip{font-family:var(--mono);font-size:12px;letter-spacing:.04em;padding:5px 11px;cursor:pointer;
+  background:rgba(6,15,14,.55);color:var(--gold-hi);border:1px solid var(--gold-dim);border-radius:3px}
+.pchip:hover{border-color:rgba(206,184,136,.42)}
+.pchip.on{background:var(--garnet);border-color:var(--garnet);color:#fff}
+.verdict{display:flex;flex-wrap:wrap;align-items:baseline;gap:11px;padding:2px 0 13px;
+  border-bottom:1px solid var(--line);margin-bottom:4px}
+.verdict .word{font-family:var(--serif);font-size:30px;letter-spacing:.06em;line-height:1}
+.verdict .amt{font-family:var(--mono);font-size:22px;line-height:1}
+.verdict .ctx{font-family:var(--mono);font-size:11.5px;color:var(--faint);margin-left:auto;
+  text-align:right;line-height:1.4}
+.verdict.up .word,.verdict.up .amt{color:var(--up)}
+.verdict.down .word,.verdict.down .amt{color:var(--down)}
+.verdict.dim .word,.verdict.dim .amt{color:var(--gold-hi)}
+@media(max-width:640px){
+  .verdict .ctx{margin-left:0;flex-basis:100%;text-align:left}
+  .verdict .word{font-size:26px}
+  .pchip{flex:1 1 auto;text-align:center}
+}
+
 /* ---------- regime strip ---------- */
 #regime{background:
     repeating-linear-gradient(115deg, rgba(206,184,136,.018) 0 1px, rgba(206,184,136,0) 1px 13px),
@@ -566,9 +587,51 @@ function pWeeklyFeature(){
   return panel("Read this week", b, "s6", "", true);
 }
 
+/* ============ is the market up? — by period ============ */
+const MKT_PERIODS=[["1D","Day"],["1W","Week"],["1M","Month"],["1Y","Year"],["10Y","10 years"]];
+let MKT_P=(()=>{ try{ return localStorage.getItem("mktPeriod")||"1D"; }catch{ return "1D"; } })();
+
+function pMarket(){
+  const R=D.equities?.returns;
+  if(!R) return "";
+  const order=R.order||[], by=R.by_sym||{};
+  const avail=MKT_PERIODS.filter(([k])=>order.some(s=>by[s]?.periods?.[k]));
+  if(!avail.length) return "";
+  if(!avail.some(([k])=>k===MKT_P)) MKT_P=avail[0][0];
+
+  const chips=avail.map(([k,lbl])=>
+    `<button class="pchip${k===MKT_P?" on":""}" data-mkt="${k}" type="button"
+       aria-pressed="${k===MKT_P}">${lbl}</button>`).join("");
+
+  const plabel=(avail.find(([k])=>k===MKT_P)||[,""])[1].toLowerCase();
+  const spx=by["^GSPC"]?.periods?.[MKT_P];
+  let head="";
+  if(spx){
+    const word=spx.pct>0?"UP":spx.pct<0?"DOWN":"FLAT";
+    head=`<div class="verdict ${cls(spx.pct)}">
+      <span class="word">${word}</span><span class="amt">${pc(spx.pct)}</span>
+      <span class="ctx">S&amp;P 500 · past ${esc(plabel)}${MKT_P==="10Y"?"<br>total, not annualised":""}</span>
+    </div>`;
+  }
+
+  let rows="";
+  for(const s of order){
+    const r=by[s], p=r?.periods?.[MKT_P];
+    if(!p) continue;
+    rows+=row({name:r.name, sp:(p.spark&&p.spark.length>4)?p.spark:null,
+      val:num(r.last,0), delta:pc(p.pct), deltaCls:cls(p.pct)});
+  }
+
+  const have=order.filter(s=>by[s]?.periods?.[MKT_P]);
+  const up=have.filter(s=>by[s].periods[MKT_P].pct>0).length;
+  return panel("Is the market up?",
+    `<div class="pchips" role="group" aria-label="Time period">${chips}</div>${head}${rows}`,
+    "s6", have.length?`${up} of ${have.length} up`:"", true);
+}
+
 /* ================= tabs ================= */
 const TABS=[
-  {id:"dashboard", label:"Dashboard", render:()=> pBigSix()+pCurveMini()+pNextUp()+pHeadlines(6)},
+  {id:"dashboard", label:"Dashboard", render:()=> pBigSix()+pMarket()+pCurveMini()+pNextUp()+pHeadlines(6)},
   {id:"daily",     label:"Daily",     render:()=> pRates()+pCredit()+pEquities()+pGlobal()+pFX()+pWatchlist()
                                                  +pSentiment()+pHeadlines(14,"s8")+pRail(["Daily"],"s12","Daily reading")},
   {id:"weekly",    label:"Weekly",    render:()=> pWeekBoard()+pWeeklyFeature()+pCreditMarkets()+pWeeklyData()
@@ -651,6 +714,14 @@ async function boot(){
 }
 boot().catch(e=>{ $("#asof").textContent="load error — see console"; console.error(e); });
 $("#refresh").addEventListener("click",()=>location.reload());
+document.addEventListener("click", ev=>{
+  const b=ev.target.closest("[data-mkt]");
+  if(!b) return;
+  MKT_P=b.dataset.mkt;
+  try{ localStorage.setItem("mktPeriod",MKT_P); }catch{}
+  const sec=b.closest("section.panel");
+  if(sec) sec.outerHTML=pMarket();
+});
 addEventListener("hashchange",()=>showTab(location.hash.slice(1)||"dashboard"));
 if("serviceWorker" in navigator && (location.protocol==="https:"||location.hostname==="localhost")){
   addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
