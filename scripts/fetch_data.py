@@ -378,6 +378,56 @@ def build_yahoo(data):
             data["copper_gold"] = {"value": round(rv[-1], 2), "spark": downsample(rv, 60)}
 
 
+# --------------------------------------------------- index returns by period
+
+PERIODS = [("1D", 1), ("1W", 5), ("1M", 21), ("1Y", 252), ("10Y", 2520)]
+
+
+def build_index_returns(data):
+    """Trailing price returns for the major indices over 1D / 1W / 1M / 1Y / 10Y.
+
+    Needs a longer history than build_yahoo's 1y window, so it pulls its own.
+    """
+    import yfinance as yf
+    syms = [t for t, _ in INDICES]
+    df = yf.download(tickers=syms, period="11y", interval="1d", auto_adjust=False,
+                     progress=False, threads=True, group_by="ticker")
+
+    out = {}
+    for sym, name in INDICES:
+        try:
+            s = df[sym]["Close"].dropna()
+            v = [float(x) for x in s.values]
+        except Exception as e:
+            log_err(f"yahoo-longrun:{sym}", e)
+            continue
+        if len(v) < 2:
+            continue
+        last = v[-1]
+        rec = {"sym": sym, "name": name, "last": round(last, 2), "periods": {}}
+        for label, bars in PERIODS:
+            if len(v) <= bars:
+                continue
+            window = v[-(bars + 1):]
+            base = window[0]
+            if not base:
+                continue
+            entry = {"pct": round((last / base - 1) * 100, 2)}
+            if bars >= 5:
+                entry["spark"] = downsample(window, 60)
+            rec["periods"][label] = entry
+        if rec["periods"]:
+            out[sym] = rec
+
+    if not out:
+        raise RuntimeError("no index history returned (Yahoo download empty)")
+
+    data.setdefault("equities", {})["returns"] = {
+        "order": [t for t, _ in INDICES if t in out],
+        "by_sym": out,
+    }
+
+
 def build_earnings(data):
     import yfinance as yf
     horizon = TODAY + dt.timedelta(days=21)
@@ -483,7 +533,8 @@ def main():
     data = {"generated_at": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"), "sample": False}
     for name, fn in [("fred-rates-credit", build_rates_and_credit), ("fred-macro", build_macro),
                      ("fred-weekly", build_weekly_fred), ("fred-quarterly", build_quarterly),
-                     ("yahoo", build_yahoo), ("earnings", build_earnings),
+                     ("yahoo", build_yahoo), ("index-returns", build_index_returns),
+                     ("earnings", build_earnings),
                      ("headlines", build_headlines), ("fear-greed", build_fear_greed)]:
         try:
             fn(data)
