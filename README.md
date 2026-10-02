@@ -46,7 +46,10 @@ Open `config.json` on github.com → pencil icon → commit. You can change:
 
 A second app in the same repo: randomized, repeatable drills for investment banking technicals, built for the phone. Live at `https://YOURNAME.github.io/terminal/learn/` once this folder is on `main` (same Pages deploy, nothing else to set up). Install it the same way: Safari → Share → **Add to Home Screen** (it gets its own icon).
 
-- **Drill** — Random mix (weighted toward what you miss), a Full case (one company through everything), or any single topic: income statement, balance sheet, cash flow, how they link ("walk me through $X of…"), equity value & EV, multiples, methodologies, DCF, M&A accretion/dilution, LBO. Every question regenerates its numbers. Build-it drills check each line and show the formula and the worked answer; concept drills are multiple choice, ordering, or say-it-out-loud cards.
+- **Drill** — Random mix (weighted toward what you miss), a Full case (one company through everything), or any single topic: income statement, balance sheet, cash flow, how they link ("walk me through $X of…"), equity value & EV, multiples, methodologies, DCF, M&A accretion/dilution, LBO. Every question regenerates its numbers. Build-it drills check each line and show the formula and the worked answer; concept drills are multiple choice, ordering, or say-it-out-loud cards. An on-screen calculator keypad is docked at the bottom and the answer box evaluates expressions (`1250*0.3`, `2^(1/5)`).
+- **Build from scratch** — spreadsheet-style models you fill in yourself, then check cell by cell: paper LBO (5 years), three-statement projection (2 years), DCF (5 years), merger math. "Final answers only" mode is the super day version.
+- **Mock super day** — a timed 12-question mix of interview Q&A (model answers plus the likely follow-up) and quick mental math. The full question bank is browsable in Notes.
+- **Tap to explain** — any underlined term opens a short definition with the formula; the `?` on every question says what it is testing.
 - **Notes** — the technical cheat sheet, reorganized around what the drills test, with a Drill-this button per topic.
 - **Progress** — day streak, mastery per topic, weakest drills, session length. Stored on the device only (`localStorage`); Reset wipes it.
 
