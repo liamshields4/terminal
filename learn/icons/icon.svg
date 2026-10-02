@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="22%" r="80%"><stop offset="0" stop-color="#4A3DD6"/><stop offset=".55" stop-color="#241C78"/><stop offset="1" stop-color="#140F3E"/></radialGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFEE8C"/><stop offset=".5" stop-color="#FFD23F"/><stop offset="1" stop-color="#E39A08"/></linearGradient>
+    <linearGradient id="blue" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5CC4FF"/><stop offset="1" stop-color="#2A74E6"/></linearGradient>
+  </defs>
+  <rect width="512" height="512" fill="url(#bg)"/>
+  <g opacity=".16" fill="#BFD2FF">
+    <path d="M256 110 L300 -10 L212 -10 Z"/><path d="M256 110 L420 -40 L470 20 Z"/><path d="M256 110 L540 90 L540 170 Z"/><path d="M256 110 L92 -40 L42 20 Z"/><path d="M256 110 L-28 90 L-28 170 Z"/><path d="M256 110 L540 260 L540 340 Z"/><path d="M256 110 L-28 260 L-28 340 Z"/>
+  </g>
+  <rect x="38" y="38" width="436" height="436" rx="64" fill="none" stroke="#0B123F" stroke-width="18"/>
+  <rect x="38" y="38" width="436" height="436" rx="64" fill="none" stroke="url(#blue)" stroke-width="8"/>
+  <g transform="translate(256 206)">
+    <path d="M-132 70 L-150 -70 L-70 -2 L0 -110 L70 -2 L150 -70 L132 70 Z" fill="#7A4A06"/>
+    <path d="M-124 56 L-138 -52 L-70 6 L0 -92 L70 6 L138 -52 L124 56 Z" fill="url(#gold)"/>
+    <rect x="-124" y="56" width="248" height="46" rx="10" fill="#7A4A06"/>
+    <rect x="-116" y="62" width="232" height="30" rx="8" fill="url(#gold)"/>
+    <circle cx="-138" cy="-56" r="18" fill="#7A4A06"/><circle cx="-138" cy="-56" r="12" fill="#FFEE8C"/>
+    <circle cx="138" cy="-56" r="18" fill="#7A4A06"/><circle cx="138" cy="-56" r="12" fill="#FFEE8C"/>
+    <circle cx="0" cy="-96" r="20" fill="#7A4A06"/><circle cx="0" cy="-96" r="14" fill="#FFEE8C"/>
+    <circle cx="0" cy="26" r="24" fill="#7A4A06"/><circle cx="0" cy="26" r="17" fill="#45E0FF"/>
+    <circle cx="-72" cy="30" r="14" fill="#7A4A06"/><circle cx="-72" cy="30" r="9" fill="#FF5F55"/>
+    <circle cx="72" cy="30" r="14" fill="#7A4A06"/><circle cx="72" cy="30" r="9" fill="#7CEB3F"/>
+  </g>
+  <text x="256" y="420" text-anchor="middle" font-family="Arial Black, DejaVu Sans, Arial, sans-serif" font-weight="900" font-size="96" fill="#FFFFFF" stroke="#0B123F" stroke-width="14" paint-order="stroke" letter-spacing="2">IB</text>
+</svg>
