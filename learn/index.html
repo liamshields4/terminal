@@ -315,12 +315,39 @@ ol.links li{margin:5px 0}
 @keyframes flashok{0%{background:#C9F5B0}100%{}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 @media (min-width:700px){body{font-size:15.5px}.ws{font-size:14.5px}}
+
+/* ---------- lessons & coach ---------- */
+.big.learn{background:linear-gradient(180deg,#B07CFF,#6A32D8);border-color:#3A1A80;box-shadow:0 6px 0 #3A1A80,inset 0 2px 0 rgba(255,255,255,.35)}
+.big.learn b{font-size:26px}.big.learn small{color:#F1E8FF}
+.btn.learnbtn{background:linear-gradient(180deg,#B07CFF,#6A32D8);border-color:#3A1A80;box-shadow:0 5px 0 #3A1A80,inset 0 2px 0 rgba(255,255,255,.35)}
+.lrow .lnum{width:30px;height:30px;border-radius:50%;background:linear-gradient(180deg,#B07CFF,#6A32D8);border:2px solid #3A1A80;display:grid;place-items:center;font:400 15px var(--display);color:#fff;flex:none;text-shadow:0 1px 0 #3A1A80}
+.lrow.ldone .lnum{background:linear-gradient(180deg,var(--green),var(--green-lo));border-color:var(--green-edge)}
+.ldots{flex:1;display:flex;gap:5px;align-items:center}
+.ldots i{flex:1;height:8px;border-radius:4px;background:#0A1040;border:1px solid #050A2A}
+.ldots i.done{background:linear-gradient(180deg,var(--green),var(--green-lo))}
+.ldots i.cur{background:linear-gradient(180deg,var(--gold-hi),var(--gold-lo))}
+.lcard{margin-top:6px}
+.lcard .qt{margin-top:4px}
+.lbody{background:var(--card);color:var(--ink-dark);border:3px solid var(--card-edge);border-radius:14px;padding:14px 16px;box-shadow:0 6px 0 var(--card-shadow);font-size:15px;font-weight:700}
+.lbody p{margin:0 0 10px}.lbody p:last-child{margin-bottom:0}
+.lbody ol,.lbody ul{margin:0 0 10px 18px}
+.lbody li{margin:4px 0}
+.lbody table.ref{color:var(--ink-dark)}
+.lbody table.ref td,.lbody table.ref th{border-bottom:1px solid #EEE8D9}
+.lbody table.ref th{color:#8A5A00}
+.lbody table.ref td:first-child{color:#1E2452;font-weight:900}
+.lbody code{color:#7A4A06;background:#FFF3C4}
+.lintro{color:var(--dim);font-size:13.5px;margin:4px 0 8px}
+.ws small.work{display:block;font-size:12.5px;color:#4A5280;font-weight:600;margin-top:2px;line-height:1.35}
+.lnav{position:sticky;bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:3;background:linear-gradient(180deg,#2A3AA6,#1C2A7A);border:3px solid var(--panel-edge);border-radius:16px;padding:10px;box-shadow:0 -8px 30px rgba(0,0,0,.45),0 6px 0 var(--panel-edge)}
+.coachbox{margin:10px 0 0}
+.coachbox .x{max-height:30vh}
 </style>
 </head>
 <body>
 <div class="wrap"><header id="top"><div class="brand"><b>IB</b>Drills</div><div id="topmeta"></div></header>
 <main id="view"></main></div>
-<nav id="tabs" aria-label="Sections"><button data-tab="drill">Drill</button><button data-tab="learn">Notes</button><button data-tab="stats">Progress</button></nav>
+<nav id="tabs" aria-label="Sections"><button data-tab="drill">Drill</button><button data-tab="learn">Learn</button><button data-tab="stats">Progress</button></nav>
 <div id="sheet" hidden></div>
 <div id="fx" aria-hidden="true"></div>
 <script>
@@ -486,7 +513,7 @@ const IBD = (() => {
       const [lab,num,nm]=map[which];
       const given=[['Revenue',$(c.rev)],['COGS',$(c.cogs)],['Operating expenses (ex D&A)',$(c.opex)],['D&A',$(c.da)],['Interest expense',$(c.intExp)],['Tax rate',pct(c.t,0)]];
       const steps=[
-        S(nm,num,'$',{formula:which==='gross'?'Revenue − COGS':which==='ebitda'?'Revenue − COGS − OpEx':which==='operating'?'Revenue − COGS − OpEx − D&A':'(EBIT − interest) × (1 − t)',explain:`${nm} = <b>${$(num)}</b>.`}),
+        S(nm,num,'$',{formula:which==='gross'?'Revenue − COGS':which==='ebitda'?'Revenue − COGS − OpEx':which==='operating'?'Revenue − COGS − OpEx − D&A':'(EBIT − interest) × (1 − t)',explain:which==='gross'?`${$(c.rev)} − ${$(c.cogs)} = <b>${$(num)}</b>.`:which==='ebitda'?`${$(c.rev)} − ${$(c.cogs)} − ${$(c.opex)} = <b>${$(num)}</b>.`:which==='operating'?`${$(c.rev)} − ${$(c.cogs)} − ${$(c.opex)} − ${$(c.da)} = <b>${$(num)}</b>.`:`EBIT = ${$(c.rev)} − ${$(c.cogs)} − ${$(c.opex)} − ${$(c.da)} = ${$(c.ebit)}.<br>Pretax = ${$(c.ebit)} − ${$(c.intExp)}${c.intInc?' + '+$(c.intInc):''} = ${$(c.ebt)}.<br>Net income = ${$(c.ebt)} × (1 − ${pct(c.t,0)}) = <b>${$(num)}</b>.`}),
         S(lab,R(num/c.rev*100,1),'%',{tol:0.15,formula:`${nm} ÷ revenue`,explain:`${$(num)} ÷ ${$(c.rev)} = <b>${pct(num/c.rev*100)}</b>. Margins are how you compare companies of different sizes; higher margins usually earn higher multiples.`})
       ];
       return {title:`${n} — ${lab.toLowerCase()}`,note:'$mm.',given,steps};
@@ -534,7 +561,7 @@ const IBD = (() => {
       const steps=[
         S('Total current assets',b.tca,'$',{formula:'Cash + AR + inventory (converts to cash within a year)',explain:`${$(b.cash)} + ${$(b.ar)} + ${$(b.inv)} = <b>${$(b.tca)}</b>.`}),
         S('Total assets',b.ta,'$',{formula:'Current assets + PP&E + goodwill',explain:`${$(b.tca)} + ${$(b.ppe)}${b.gw?' + '+$(b.gw):''} = <b>${$(b.ta)}</b>.`}),
-        S('Total current liabilities',b.tcl,'$',{formula:'AP + accrued + short-term debt',explain:`<b>${$(b.tcl)}</b>. Due within a year.`}),
+        S('Total current liabilities',b.tcl,'$',{formula:'AP + accrued + short-term debt',explain:`${$(b.ap)}${b.accrued?' + '+$(b.accrued):''}${b.std?' + '+$(b.std):''} = <b>${$(b.tcl)}</b>. Everything due within a year.`}),
         S('Total liabilities',b.tl,'$',{formula:'Current liabilities + long-term debt',explain:`${$(b.tcl)} + ${$(b.ltd)} = <b>${$(b.tl)}</b>.`}),
         S('Total shareholders\' equity',b.te,'$',{formula:'Total assets − total liabilities',explain:`${$(b.ta)} − ${$(b.tl)} = <b>${$(b.te)}</b>. The balance sheet balances by construction.`}),
         S('Retained earnings',b.re,'$',{formula:'Total equity − common stock & APIC',explain:`${$(b.te)} − ${$(b.common)} = <b>${$(b.re)}</b>. Retained earnings = cumulative net income − cumulative dividends; it is where the income statement lands.`})
@@ -1069,8 +1096,8 @@ const IBD = (() => {
       return {title:`${n} — beta from a peer`,note:'Strip out the peer\'s leverage, then apply the target\'s.',
         given:[['Peer levered beta',fnum(bl,2)],['Peer debt / equity',fnum(de1,2)],['Tax rate',pct(t,0)],['Target debt / equity',fnum(de2,2)],['Risk-free rate',pct(rf)],['Equity risk premium',pct(erp)]],
         steps:[
-          S('Unlevered beta',bu,'n',{tol:0.02,formula:'βL ÷ [1 + (1 − t) × D/E]',explain:`${fnum(bl,2)} ÷ [1 + ${fnum(1-t/100,2)} × ${fnum(de1,2)}] = <b>${fnum(bu,2)}</b>. Business risk only.`}),
-          S('Relevered beta at target structure',br,'n',{tol:0.02,formula:'βU × [1 + (1 − t) × D/E target]',explain:`${fnum(bu,2)} × [1 + ${fnum(1-t/100,2)} × ${fnum(de2,2)}] = <b>${fnum(br,2)}</b>. More debt, more equity risk, higher beta.`}),
+          S('Unlevered beta',bu,'n',{tol:0.02,formula:'βL ÷ [1 + (1 − t) × D/E]',explain:`(1 − t) = 1 − ${pct(t,0)} = ${fnum(1-t/100,2)}.<br>Denominator = 1 + ${fnum(1-t/100,2)} × ${fnum(de1,2)} = ${fnum(1+(1-t/100)*de1,3)}.<br>βU = ${fnum(bl,2)} ÷ ${fnum(1+(1-t/100)*de1,3)} = <b>${fnum(bu,2)}</b>. Business risk only, leverage stripped out.`}),
+          S('Relevered beta at target structure',br,'n',{tol:0.02,formula:'βU × [1 + (1 − t) × D/E target]',explain:`Multiplier = 1 + ${fnum(1-t/100,2)} × ${fnum(de2,2)} = ${fnum(1+(1-t/100)*de2,3)}.<br>βL = ${fnum(bu,2)} × ${fnum(1+(1-t/100)*de2,3)} = <b>${fnum(br,2)}</b>. More debt means more equity risk and a higher beta.`}),
           S('Cost of equity',ke,'%',{tol:0.12,formula:'Rf + β × ERP',explain:`${pct(rf)} + ${fnum(br,2)} × ${pct(erp)} = <b>${pct(ke,2)}</b>.`})
         ],wrap:'In practice you unlever every peer\'s beta, take the median, and relever at the target\'s capital structure.'};
     }});
@@ -1151,13 +1178,13 @@ const IBD = (() => {
       if(d.cashPct)given.push(['Interest earned on cash',pct(d.ic,0)]); if(d.debtPct)given.push(['Interest rate on new debt',pct(d.id,0)]);
       if(d.syn)given.push(['Pre-tax synergies',$(d.syn)]); given.push(['Tax rate',pct(d.t,0)]);
       const steps=[S('Equity purchase price',d.purchase,'$',{formula:'Target price × (1 + premium) × target shares',explain:`${ps(d.priceT)} × ${fnum(1+d.prem/100,2)} = ${ps(d.offer)} per share × ${mm(d.sharesT)} = <b>${$(d.purchase)}</b>.`})];
-      if(d.stockPct)steps.push(S('New buyer shares issued',d.newSh,'mm',{formula:'Stock portion of price ÷ buyer share price',explain:`${$(d.stock$)} ÷ ${ps(d.priceB)} = <b>${mm(d.newSh)}</b> new shares. This is the "cost" of paying with stock: dilution.`}));
-      if(d.cashPct)steps.push(S('After-tax cost of cash (foregone interest)',d.costCash,'$',{formula:'Cash used × interest rate × (1 − t)',explain:`${$(d.cash$)} × ${pct(d.ic,0)} × (1 − ${pct(d.t,0)}) = <b>${$(d.costCash)}</b>. The cash stops earning interest.`}));
-      if(d.debtPct)steps.push(S('After-tax cost of new debt',d.costDebt,'$',{formula:'Debt raised × interest rate × (1 − t)',explain:`${$(d.debt$)} × ${pct(d.id,0)} × (1 − ${pct(d.t,0)}) = <b>${$(d.costDebt)}</b>.`}));
-      if(d.syn)steps.push(S('After-tax synergies',d.synAt,'$',{formula:'Synergies × (1 − t)',explain:`${$(d.syn)} × (1 − ${pct(d.t,0)}) = <b>${$(d.synAt)}</b>.`}));
+      if(d.stockPct)steps.push(S('New buyer shares issued',d.newSh,'mm',{formula:'Stock portion of price ÷ buyer share price',explain:`Stock portion = ${pct(d.stockPct,0)} × ${$(d.purchase)} = ${$(d.stock$)}.<br>New shares = ${$(d.stock$)} ÷ ${ps(d.priceB)} = <b>${mm(d.newSh)}</b>.<br>This is the "cost" of paying with stock: the buyer's earnings are now spread over more shares.`}));
+      if(d.cashPct)steps.push(S('After-tax cost of cash (foregone interest)',d.costCash,'$',{formula:'Cash used × interest rate × (1 − t)',explain:`Cash used = ${pct(d.cashPct,0)} × ${$(d.purchase)} = ${$(d.cash$)}.<br>Interest it stops earning = ${$(d.cash$)} × ${pct(d.ic,0)} = ${$(R(d.cash$*d.ic/100,1))} before tax.<br>After tax = ${$(R(d.cash$*d.ic/100,1))} × (1 − ${pct(d.t,0)}) = <b>${$(d.costCash)}</b>.`}));
+      if(d.debtPct)steps.push(S('After-tax cost of new debt',d.costDebt,'$',{formula:'Debt raised × interest rate × (1 − t)',explain:`Debt raised = ${pct(d.debtPct,0)} × ${$(d.purchase)} = ${$(d.debt$)}.<br>Interest = ${$(d.debt$)} × ${pct(d.id,0)} = ${$(R(d.debt$*d.id/100,1))} before tax.<br>After tax = ${$(R(d.debt$*d.id/100,1))} × (1 − ${pct(d.t,0)}) = <b>${$(d.costDebt)}</b>. Interest is deductible, so the government pays part of it.`}));
+      if(d.syn)steps.push(S('After-tax synergies',d.synAt,'$',{formula:'Synergies × (1 − t)',explain:`Synergies are extra pre-tax profit, so they get taxed: ${$(d.syn)} × (1 − ${pct(d.t,0)}) = <b>${$(d.synAt)}</b>.`}));
       steps.push(
         S('Pro forma net income',d.pfNI,'$',{formula:'Buyer NI + target NI + after-tax synergies − after-tax cost of cash − after-tax cost of debt',explain:`${$(d.niB)} + ${$(d.niT)}${d.syn?' + '+$(d.synAt):''}${d.cashPct?' − '+$(d.costCash):''}${d.debtPct?' − '+$(d.costDebt):''} = <b>${$(d.pfNI)}</b>.`}),
-        S('Pro forma shares',d.pfSh,'mm',{formula:'Buyer shares + new shares issued',explain:`${mm(d.sharesB)} + ${mm(d.newSh)} = <b>${mm(d.pfSh)}</b>.`}),
+        S('Pro forma shares',d.pfSh,'mm',{formula:'Buyer shares + new shares issued',explain:`${mm(d.sharesB)} + ${mm(d.newSh)}${d.stockPct?'':' (no stock used, so no new shares)'} = <b>${mm(d.pfSh)}</b>. The target's own shares disappear: they were bought.`}),
         S('Pro forma EPS',d.pfEPS,'$ps',{tol:0.02,formula:'Pro forma NI ÷ pro forma shares',explain:`${$(d.pfNI)} ÷ ${mm(d.pfSh)} = <b>${ps(d.pfEPS)}</b> vs. ${ps(d.epsB)} standalone.`}),
         S('Accretion / (dilution)',d.acc,'%',{tol:0.4,formula:'Pro forma EPS ÷ buyer EPS − 1',explain:`${ps(d.pfEPS)} ÷ ${ps(d.epsB)} − 1 = <b>${pct(d.acc)}</b>: the deal is <b>${d.acc>=0?'accretive':'dilutive'}</b>. ${d.acc>=0?'The target\'s earnings (plus synergies) exceed the after-tax cost of paying for it.':'The cost of financing exceeds the earnings acquired.'}`})
       );
@@ -1193,7 +1220,7 @@ const IBD = (() => {
         given:[['Target net income',$(niT)],['Target current equity value',$(capT)],['Buyer P / E',x(peB,0)],['Buyer cost of new debt (pre-tax)',pct(id,0)],['Tax rate',pct(t,0)]],
         steps:[
           S('Max equity price, all-stock',maxStock,'$',{formula:'Target NI × buyer P/E',explain:`${$(niT)} × ${x(peB,0)} = <b>${$(maxStock)}</b>. Paying the buyer\'s own multiple for the target\'s earnings is exactly breakeven.`}),
-          S('Max equity price, all-debt',maxDebt,'$',{formula:'Target NI ÷ [rate × (1 − t)]',explain:`${$(niT)} ÷ ${pct(kd,2)} = <b>${$(maxDebt)}</b>. Price where after-tax interest exactly eats the target\'s earnings.`}),
+          S('Max equity price, all-debt',maxDebt,'$',{formula:'Target NI ÷ [rate × (1 − t)]',explain:`After-tax cost of debt = ${pct(id,0)} × (1 − ${pct(t,0)}) = ${pct(kd,2)}.<br>Breakeven: price × ${pct(kd,2)} = ${$(niT)}, so price = ${$(niT)} ÷ ${pct(kd,2)} = <b>${$(maxDebt)}</b>.<br>At that price the after-tax interest exactly eats the target\'s earnings.`}),
           S('Max premium under all-debt',premDebt,'%',{tol:0.8,formula:'Max price ÷ current equity value − 1',explain:`${$(maxDebt)} ÷ ${$(capT)} − 1 = <b>${pct(premDebt)}</b>. ${premDebt>40?'Cheap debt lets the buyer pay a big premium and still be accretive; accretion is not the same as a good deal.':'A thin cushion: the deal needs synergies to be accretive at a normal premium.'}`})
         ]};
     }});
@@ -1266,7 +1293,7 @@ const IBD = (() => {
         given:[['LTM EBITDA',$(ebitda)],['Purchase of equity',$(eqPrice)],['Refinance existing debt',$(refi)],['Transaction & financing fees',$(fees)],...(minCash?[['Cash to balance sheet',$(minCash)]]:[]),['Senior debt',`${x(senior/ebitda)} EBITDA`],['Subordinated notes',`${x(sub/ebitda)} EBITDA`],...(cashUsed?[['Existing cash used',$(cashUsed)]]:[])],
         steps:[
           S('Total uses',uses,'$',{formula:'Equity purchase + debt refinanced + fees (+ cash to BS)',explain:`${$(eqPrice)} + ${$(refi)} + ${$(fees)}${minCash?' + '+$(minCash):''} = <b>${$(uses)}</b>.`}),
-          S('Total new debt',debt,'$',{formula:'Senior + subordinated',explain:`${$(senior)} + ${$(sub)} = <b>${$(debt)}</b> (${x(debt/ebitda)} total leverage).`}),
+          S('Total new debt',debt,'$',{formula:'Senior + subordinated',explain:`Senior = ${x(senior/ebitda)} × ${$(ebitda)} = ${$(senior)}.<br>Subordinated = ${x(sub/ebitda)} × ${$(ebitda)} = ${$(sub)}.<br>Total = ${$(senior)} + ${$(sub)} = <b>${$(debt)}</b> (${x(debt/ebitda)} total leverage).`}),
           S('Sponsor equity (plug)',equity,'$',{formula:'Total uses − debt − existing cash used',explain:`${$(uses)} − ${$(debt)}${cashUsed?' − '+$(cashUsed):''} = <b>${$(equity)}</b>.`}),
           S('Equity as % of total sources',R(equity/uses*100,1),'%',{tol:0.6,formula:'Sponsor equity ÷ total sources',explain:`${$(equity)} ÷ ${$(uses)} = <b>${pct(equity/uses*100)}</b>. Modern deals run roughly 40–60% equity; the 1980s ran 10%.`})
         ]};
@@ -1311,9 +1338,9 @@ const IBD = (() => {
       return {title:`${sp}: what can we pay for ${n}?`,note:'$mm. Solve backwards from the exit.',
         given:[['Current EBITDA',$(ebitda)],['EBITDA growth',pct(g,0)+' per year'],['Hold period',`${N} years`],['Exit multiple',x(exitM)],['Debt at entry',`${x(lev)} EBITDA`],['Debt repaid by exit',pct(pay*100,0)+' of entry debt'],['Target IRR',pct(irr,0)]],
         steps:[
-          S('Exit equity value',exitEq,'$',{formula:'Exit-year EBITDA × exit multiple − remaining debt',explain:`${$(ebN)} × ${x(exitM)} = ${$(exitEV)}; minus debt ${$(debtN)} = <b>${$(exitEq)}</b>.`}),
+          S('Exit equity value',exitEq,'$',{formula:'Exit-year EBITDA × exit multiple − remaining debt',explain:`Year-${N} EBITDA = ${$(ebitda)} × ${fnum(1+g/100,2)}^${N} = ${$(ebN)}.<br>Exit EV = ${$(ebN)} × ${x(exitM)} = ${$(exitEV)}.<br>Debt at entry = ${x(lev)} × ${$(ebitda)} = ${$(debt0)}; ${pct(pay*100,0)} repaid, so debt at exit = ${$(debt0)} × (1 − ${pct(pay*100,0)}) = ${$(debtN)}.<br>Exit equity = ${$(exitEV)} − ${$(debtN)} = <b>${$(exitEq)}</b>.`}),
           S('Max equity check today',maxEq,'$',{formula:'Exit equity ÷ (1 + IRR)^n',explain:`${$(exitEq)} ÷ ${fnum(1+irr/100,2)}^${N} = <b>${$(maxEq)}</b>. The most equity the sponsor can put in and still earn ${pct(irr,0)}.`}),
-          S('Max purchase price (EV)',maxEV,'$',{formula:'Max equity + debt raised',explain:`${$(maxEq)} + ${$(debt0)} = <b>${$(maxEV)}</b>.`}),
+          S('Max purchase price (EV)',maxEV,'$',{formula:'Max equity + debt raised',explain:`The lenders fund ${x(lev)} × ${$(ebitda)} = ${$(debt0)} regardless of price, so the most the sponsor can pay is ${$(maxEq)} + ${$(debt0)} = <b>${$(maxEV)}</b>.`}),
           S('Max entry multiple',maxM,'x',{tol:0.2,formula:'Max EV ÷ current EBITDA',explain:`${$(maxEV)} ÷ ${$(ebitda)} = <b>${x(maxM)}</b>. ${maxM<exitM?'Below the exit multiple: the deal relies on growth and paydown.':'The sponsor could even pay above the exit multiple and still clear the hurdle.'} This is why an LBO analysis sets a valuation floor.`})
         ]};
     }});
@@ -1367,7 +1394,7 @@ const IBD = (() => {
         S('Gross profit',c.gp,'$',{formula:'Revenue − COGS',explain:`${$(c.rev)} − ${$(c.cogs)} = <b>${$(c.gp)}</b>.`}),
         S('EBITDA',c.ebitda,'$',{formula:'Gross profit − opex',explain:`${$(c.gp)} − ${$(c.opex)} = <b>${$(c.ebitda)}</b>.`}),
         S('EBIT',c.ebit,'$',{formula:'EBITDA − D&A',explain:`${$(c.ebitda)} − ${$(c.da)} = <b>${$(c.ebit)}</b>.`}),
-        S('Net income',c.ni,'$',{formula:'(EBIT − interest expense + interest income) × (1 − t)',explain:`${$(c.ebt)} × (1 − ${pct(c.t,0)}) = <b>${$(c.ni)}</b>.`}),
+        S('Net income',c.ni,'$',{formula:'(EBIT − interest expense + interest income) × (1 − t)',explain:`Pretax income = ${$(c.ebit)} − ${$(c.intExp)}${c.intInc?' + '+$(c.intInc):''} = ${$(c.ebt)}.<br>Taxes = ${$(c.ebt)} × ${pct(c.t,0)} = ${$(c.tax)}.<br>Net income = ${$(c.ebt)} − ${$(c.tax)} = <b>${$(c.ni)}</b>.`}),
         S('Cash from operations',c.cfo,'$',{formula:'NI + D&A − ΔAR − ΔInventory + ΔAP',explain:`${$(c.ni)} + ${$(c.da)} − (${$(c.dAR)}) − (${$(c.dInv)}) + (${$(c.dAP)}) = <b>${$(c.cfo)}</b>.`}),
         S('Free cash flow (CFO − CapEx)',c.fcf,'$',{formula:'CFO − CapEx',explain:`${$(c.cfo)} − ${$(c.capex)} = <b>${$(c.fcf)}</b>.`}),
         S('Unlevered free cash flow',c.ufcf,'$',{formula:'EBIT(1 − t) + D&A − CapEx − ΔNWC',explain:`${$(c.ebit)} × ${fnum(1-c.t/100,2)} + ${$(c.da)} − ${$(c.capex)} − (${$(c.dNWC)}) = <b>${$(c.ufcf)}</b>.`}),
@@ -1381,9 +1408,9 @@ const IBD = (() => {
         S('DCF enterprise value (perpetuity on UFCF)',dcfEV,'$',{tol:Math.max(2,dcfEV*0.01),formula:'UFCF × (1 + g) ÷ (WACC − g)',explain:`${$(ufcf)} × ${fnum(1+g/100,3)} ÷ ${pct(wacc-g,2)} = <b>${$(dcfEV)}</b>. (A one-line DCF: every year grows at g forever.)`}),
         S('DCF vs market EV',gap,'%',{tol:1,formula:'DCF EV ÷ market EV − 1',explain:`${$(dcfEV)} ÷ ${$(ev)} − 1 = <b>${pct(gap)}</b>: the DCF says the business is worth ${gap>0?'more':'less'} than the market pays. ${Math.abs(gap)>30?'A gap this big means your assumptions or the market\'s are off; dig in.':'Within a normal range.'}`}),
         S('Sponsor entry EV',entryEV,'$',{formula:'Equity value × (1 + premium) + debt − cash',explain:`${$(eqv)} × ${fnum(1+prem/100,2)} + ${$(c.debt)} − ${$(c.cash)} = <b>${$(entryEV)}</b> (${x(entryM)} EBITDA).`}),
-        S('Sponsor equity check',spEq,'$',{formula:'Entry EV − new debt',explain:`${$(entryEV)} − ${x(lev)} × ${$(c.ebitda)} = <b>${$(spEq)}</b>.`}),
-        S('Exit EV in year 5',exitEV,'$',{formula:'EBITDA × (1 + g)^5 × entry multiple',explain:`${$(eb5)} × ${x(entryM)} = <b>${$(exitEV)}</b> (same multiple in and out: no multiple expansion).`}),
-        S('Exit equity',exitEq,'$',{formula:'Exit EV − remaining debt',explain:`${$(exitEV)} − (${$(newDebt)} − ${$(pay)}) = <b>${$(exitEq)}</b>.`}),
+        S('Sponsor equity check',spEq,'$',{formula:'Entry EV − new debt',explain:`New debt = ${x(lev)} × ${$(c.ebitda)} = ${$(newDebt)}.<br>Sponsor equity = ${$(entryEV)} − ${$(newDebt)} = <b>${$(spEq)}</b>.`}),
+        S('Exit EV in year 5',exitEV,'$',{formula:'EBITDA × (1 + g)^5 × entry multiple',explain:`Year-5 EBITDA = ${$(c.ebitda)} × ${fnum(1+g2/100,2)}^5 = ${$(eb5)}.<br>Exit EV = ${$(eb5)} × ${x(entryM)} = <b>${$(exitEV)}</b> (same multiple in and out: no multiple expansion).`}),
+        S('Exit equity',exitEq,'$',{formula:'Exit EV − remaining debt',explain:`Debt at exit = ${$(newDebt)} raised − ${$(pay)} repaid = ${$(debt5)}.<br>Exit equity = ${$(exitEV)} − ${$(debt5)} = <b>${$(exitEq)}</b>.`}),
         S('MOIC',moic,'x2',{tol:0.03,formula:'Exit equity ÷ sponsor equity',explain:`${$(exitEq)} ÷ ${$(spEq)} = <b>${x(moic,2)}</b>.`}),
         S('IRR',irr,'%',{tol:0.6,formula:'MOIC^(1/5) − 1',explain:`<b>${pct(irr)}</b>. ${irr>=20?`A ${pct(prem,0)} premium still clears a 20% hurdle: a sponsor could bid.`:`A ${pct(prem,0)} premium does not clear 20%: a sponsor would need a lower price, more growth or more leverage.`}`})
       ];
@@ -1411,30 +1438,31 @@ const IBD = (() => {
         exitEV=Y[4].e*exitM; exitEq=exitEV-Y[4].dEnd; moic=exitEq/Eq0; irr=irrOf(moic,5);
         if(moic>=1&&moic<=5.5)break;
       }
-      const row=(label,key,f,x)=>({label,cells:Y.map(y=>C(y[key],'$',f,x))});
+      const row=(label,key,f,w)=>({label,cells:Y.map((y,i)=>{const p=i?Y[i-1]:null;return C(y[key],'$',f,w?w(y,i,p):'')})});
+      const gro=fnum(1+g/100,2);
       const proj={name:'Projection ($mm)',cols:yrs(5),rows:[
-        row('Revenue','r','Prior-year revenue × (1 + growth)','Year 1 grows off the base-year revenue.'),
-        row('EBITDA','e','Revenue × EBITDA margin'),
-        row('D&A','da','Revenue × D&A %'),
-        row('EBIT','ebit','EBITDA − D&A'),
-        row('Interest','int_','Beginning debt × interest rate','Computed on the debt balance at the start of the year.'),
-        row('Pretax income','ebt','EBIT − interest'),
-        row('Taxes','tax','Pretax income × tax rate'),
-        row('Net income','ni','Pretax income − taxes'),
-        row('CapEx','cx','Revenue × CapEx %'),
-        row('Increase in NWC','dn','(Revenue − prior revenue) × NWC %','Growth ties up working capital.'),
-        row('Free cash flow','fcf','Net income + D&A − CapEx − increase in NWC','Levered FCF: interest is already paid, so all of it sweeps to debt.'),
-        row('Beginning debt','dBeg','Prior-year ending debt (Y1: debt raised)'),
-        row('Ending debt','dEnd','Beginning debt − free cash flow')
+        row('Revenue','r','Prior-year revenue × (1 + growth)',(y,i,p)=>`${$(p?p.r:rev0)} × ${gro} = ${$(y.r)}`),
+        row('EBITDA','e','Revenue × EBITDA margin',(y)=>`${$(y.r)} × ${pct(m,0)} = ${$(y.e)}`),
+        row('D&A','da','Revenue × D&A %',(y)=>`${$(y.r)} × ${pct(daP,0)} = ${$(y.da)}`),
+        row('EBIT','ebit','EBITDA − D&A',(y)=>`${$(y.e)} − ${$(y.da)} = ${$(y.ebit)}`),
+        row('Interest','int_','Beginning debt × interest rate',(y)=>`${$(y.dBeg)} × ${pct(rate,0)} = ${$(y.int_)} (on the balance at the start of the year)`),
+        row('Pretax income','ebt','EBIT − interest',(y)=>`${$(y.ebit)} − ${$(y.int_)} = ${$(y.ebt)}`),
+        row('Taxes','tax','Pretax income × tax rate',(y)=>`${$(y.ebt)} × ${pct(t,0)} = ${$(y.tax)}`),
+        row('Net income','ni','Pretax income − taxes',(y)=>`${$(y.ebt)} − ${$(y.tax)} = ${$(y.ni)}`),
+        row('CapEx','cx','Revenue × CapEx %',(y)=>`${$(y.r)} × ${pct(cxP,0)} = ${$(y.cx)}`),
+        row('Increase in NWC','dn','(Revenue − prior revenue) × NWC %',(y,i,p)=>`(${$(y.r)} − ${$(p?p.r:rev0)}) × ${pct(nwcP,0)} = ${$(y.dn)}. Growth ties up working capital.`),
+        row('Free cash flow','fcf','Net income + D&A − CapEx − increase in NWC',(y)=>`${$(y.ni)} + ${$(y.da)} − ${$(y.cx)} − ${$(y.dn)} = ${$(y.fcf)}. Interest is already paid, so all of it sweeps to debt.`),
+        row('Beginning debt','dBeg','Prior-year ending debt (Y1: debt raised)',(y,i)=>i?`Prior year ending debt = ${$(y.dBeg)}`:`Debt raised = ${x(lev,0)} × ${$(ebitda0)} = ${$(y.dBeg)}`),
+        row('Ending debt','dEnd','Beginning debt − free cash flow',(y)=>`${$(y.dBeg)} − ${$(y.fcf)} = ${$(y.dEnd)}`)
       ]};
       const ret={name:'Returns ($mm)',cols:['Value'],rows:[
-        {label:'Entry EV',cells:[C(EV,'$','Base-year EBITDA × entry multiple')]},
-        {label:'Debt raised',cells:[C(D0,'$','Leverage × base-year EBITDA')]},
-        {label:'Sponsor equity',cells:[C(Eq0,'$','Entry EV − debt raised')]},
-        {label:'Exit EV',cells:[C(exitEV,'$','Year-5 EBITDA × exit multiple')]},
-        {label:'Exit equity',cells:[C(exitEq,'$','Exit EV − year-5 ending debt')]},
-        {label:'MOIC',cells:[C(moic,'x2','Exit equity ÷ sponsor equity')]},
-        {label:'IRR',cells:[C(irr,'%','MOIC^(1/5) − 1')]}
+        {label:'Entry EV',cells:[C(EV,'$','Base-year EBITDA × entry multiple',`Base-year EBITDA = ${$(rev0)} × ${pct(m,0)} = ${$(ebitda0)}; × ${x(entryM,0)} = ${$(EV)}`)]},
+        {label:'Debt raised',cells:[C(D0,'$','Leverage × base-year EBITDA',`${x(lev,0)} × ${$(ebitda0)} = ${$(D0)}`)]},
+        {label:'Sponsor equity',cells:[C(Eq0,'$','Entry EV − debt raised',`${$(EV)} − ${$(D0)} = ${$(Eq0)}`)]},
+        {label:'Exit EV',cells:[C(exitEV,'$','Year-5 EBITDA × exit multiple',`${$(Y[4].e)} × ${x(exitM,0)} = ${$(exitEV)}`)]},
+        {label:'Exit equity',cells:[C(exitEq,'$','Exit EV − year-5 ending debt',`${$(exitEV)} − ${$(Y[4].dEnd)} = ${$(exitEq)}`)]},
+        {label:'MOIC',cells:[C(moic,'x2','Exit equity ÷ sponsor equity',`${$(exitEq)} ÷ ${$(Eq0)} = ${x(moic,2)}`)]},
+        {label:'IRR',cells:[C(irr,'%','MOIC^(1/5) − 1',`${x(moic,2)}^(1/5) − 1 = ${pct(irr)}`)]}
       ]};
       return {title:`${sp} buys ${n}: paper LBO`,note:'Fill every cell, then check. Conventions: interest on beginning debt, 100% cash sweep, no fees, taxes at the stated rate.',
         assumptions:[['Base-year revenue',$(rev0)],['EBITDA margin',pct(m,0)],['Revenue growth',pct(g,0)+' per year'],['D&A',pct(daP,0)+' of revenue'],['CapEx',pct(cxP,0)+' of revenue'],['Increase in NWC',pct(nwcP,0)+' of the revenue increase'],['Entry multiple',x(entryM,0)+' base-year EBITDA'],['Leverage',x(lev,0)+' base-year EBITDA'],['Interest rate',pct(rate,0)],['Tax rate',pct(t,0)],['Exit multiple',x(exitM,0)+' year-5 EBITDA'],['Hold','5 years']],
@@ -1461,10 +1489,11 @@ const IBD = (() => {
         Y.push({r,cogs,gp,sga,ebitda,da,ebit,int_,ebt,tax,ni,dAR,dInv,dAP,cfo,cx,repay,net,cash:cash1,ar:ar1,inv:inv1,ppe:ppe1,ta,ap:ap1,debt:debt1,eq:eq1,tle});
         rev=r;cash=cash1;ar=ar1;inv=inv1;ppe=ppe1;ap=ap1;debt=debt1;eq=eq1;
       }
-      const row=(label,key,f,x)=>({label,cells:Y.map(y=>C(y[key],'$',f,x))});
-      const is={name:'Income statement ($mm)',cols:yrs(2),rows:[row('Revenue','r','Prior revenue × (1 + growth)'),row('COGS','cogs','Revenue × (1 − gross margin)'),row('Gross profit','gp','Revenue − COGS'),row('SG&A','sga','Revenue × SG&A %'),row('EBITDA','ebitda','Gross profit − SG&A'),row('D&A','da','Fixed, per assumptions'),row('EBIT','ebit','EBITDA − D&A'),row('Interest','int_','Beginning debt × rate'),row('Pretax income','ebt','EBIT − interest'),row('Taxes','tax','Pretax × tax rate'),row('Net income','ni','Pretax − taxes')]};
-      const cfs={name:'Cash flow statement ($mm)',cols:yrs(2),rows:[row('Net income','ni','From the IS'),row('D&A','da','Add back: non-cash'),row('Change in AR (cash effect)','dAR','− (AR this year − AR last year)','Receivables up = cash down.'),row('Change in inventory (cash effect)','dInv','− (inventory this year − last year)'),row('Change in AP (cash effect)','dAP','+ (AP this year − AP last year)','Payables up = cash up.'),row('Cash from operations','cfo','NI + D&A + working-capital effects'),row('CapEx','cx','Fixed, per assumptions (an outflow)'),row('Debt repayment','repay','Fixed, per assumptions (an outflow)'),row('Net change in cash','net','CFO − CapEx − repayment'),row('Ending cash','cash','Prior cash + net change')]};
-      const bs={name:'Balance sheet ($mm)',cols:yrs(2),rows:[row('Cash','cash','From the CFS'),row('Accounts receivable','ar','Revenue × AR %'),row('Inventory','inv','Revenue × inventory %'),row('PP&E','ppe','Prior PP&E + CapEx − D&A'),row('Total assets','ta','Cash + AR + inventory + PP&E'),row('Accounts payable','ap','Revenue × AP %'),row('Debt','debt','Prior debt − repayment'),row('Equity','eq','Prior equity + net income (no dividends)'),row('Total liabilities + equity','tle','AP + debt + equity: must equal total assets')]};
+      const row=(label,key,f,w)=>({label,cells:Y.map((y,i)=>{const p=i?Y[i-1]:null;return C(y[key],'$',f,w?w(y,i,p):'')})});
+      const B={r:rev0,cash:cash0,ar:ar0,inv:inv0,ppe:ppe0,ap:ap0,debt:debt0,eq:eq0};
+      const is={name:'Income statement ($mm)',cols:yrs(2),rows:[row('Revenue','r','Prior revenue × (1 + growth)',(y,i,p)=>`${$(p?p.r:B.r)} × ${fnum(1+g/100,2)} = ${$(y.r)}`),row('COGS','cogs','Revenue × (1 − gross margin)',(y)=>`${$(y.r)} × (1 − ${pct(gm,0)}) = ${$(y.cogs)}`),row('Gross profit','gp','Revenue − COGS',(y)=>`${$(y.r)} − ${$(y.cogs)} = ${$(y.gp)}`),row('SG&A','sga','Revenue × SG&A %',(y)=>`${$(y.r)} × ${pct(sgaP,0)} = ${$(y.sga)}`),row('EBITDA','ebitda','Gross profit − SG&A',(y)=>`${$(y.gp)} − ${$(y.sga)} = ${$(y.ebitda)}`),row('D&A','da','Fixed, per assumptions',()=>`${$(da)} per year, as assumed`),row('EBIT','ebit','EBITDA − D&A',(y)=>`${$(y.ebitda)} − ${$(y.da)} = ${$(y.ebit)}`),row('Interest','int_','Beginning debt × rate',(y,i,p)=>`${$(p?p.debt:B.debt)} × ${pct(rate,0)} = ${$(y.int_)}`),row('Pretax income','ebt','EBIT − interest',(y)=>`${$(y.ebit)} − ${$(y.int_)} = ${$(y.ebt)}`),row('Taxes','tax','Pretax × tax rate',(y)=>`${$(y.ebt)} × ${pct(t,0)} = ${$(y.tax)}`),row('Net income','ni','Pretax − taxes',(y)=>`${$(y.ebt)} − ${$(y.tax)} = ${$(y.ni)}`)]};
+      const cfs={name:'Cash flow statement ($mm)',cols:yrs(2),rows:[row('Net income','ni','From the IS',(y)=>`Same ${$(y.ni)} as the income statement`),row('D&A','da','Add back: non-cash',(y)=>`+${$(y.da)}: it reduced net income but no cash left`),row('Change in AR (cash effect)','dAR','− (AR this year − AR last year)',(y,i,p)=>`−(${$(y.ar)} − ${$(p?p.ar:B.ar)}) = ${$(y.dAR)}. Receivables up means cash down.`),row('Change in inventory (cash effect)','dInv','− (inventory this year − last year)',(y,i,p)=>`−(${$(y.inv)} − ${$(p?p.inv:B.inv)}) = ${$(y.dInv)}`),row('Change in AP (cash effect)','dAP','+ (AP this year − AP last year)',(y,i,p)=>`+(${$(y.ap)} − ${$(p?p.ap:B.ap)}) = ${$(y.dAP)}. Payables up means cash up.`),row('Cash from operations','cfo','NI + D&A + working-capital effects',(y)=>`${$(y.ni)} + ${$(y.da)} + (${$(y.dAR)}) + (${$(y.dInv)}) + (${$(y.dAP)}) = ${$(y.cfo)}`),row('CapEx','cx','Fixed, per assumptions (an outflow)',()=>`${$(cx)} per year, as assumed`),row('Debt repayment','repay','Fixed, per assumptions (an outflow)',()=>`${$(repay)} per year, as assumed`),row('Net change in cash','net','CFO − CapEx − repayment',(y)=>`${$(y.cfo)} − ${$(y.cx)} − ${$(y.repay)} = ${$(y.net)}`),row('Ending cash','cash','Prior cash + net change',(y,i,p)=>`${$(p?p.cash:B.cash)} + (${$(y.net)}) = ${$(y.cash)}`)]};
+      const bs={name:'Balance sheet ($mm)',cols:yrs(2),rows:[row('Cash','cash','From the CFS',(y)=>`Ending cash from the CFS = ${$(y.cash)}`),row('Accounts receivable','ar','Revenue × AR %',(y)=>`${$(y.r)} × ${pct(arP,0)} = ${$(y.ar)}`),row('Inventory','inv','Revenue × inventory %',(y)=>`${$(y.r)} × ${pct(invP,0)} = ${$(y.inv)}`),row('PP&E','ppe','Prior PP&E + CapEx − D&A',(y,i,p)=>`${$(p?p.ppe:B.ppe)} + ${$(y.cx)} − ${$(y.da)} = ${$(y.ppe)}`),row('Total assets','ta','Cash + AR + inventory + PP&E',(y)=>`${$(y.cash)} + ${$(y.ar)} + ${$(y.inv)} + ${$(y.ppe)} = ${$(y.ta)}`),row('Accounts payable','ap','Revenue × AP %',(y)=>`${$(y.r)} × ${pct(apP,0)} = ${$(y.ap)}`),row('Debt','debt','Prior debt − repayment',(y,i,p)=>`${$(p?p.debt:B.debt)} − ${$(y.repay)} = ${$(y.debt)}`),row('Equity','eq','Prior equity + net income (no dividends)',(y,i,p)=>`${$(p?p.eq:B.eq)} + ${$(y.ni)} = ${$(y.eq)}`),row('Total liabilities + equity','tle','AP + debt + equity: must equal total assets',(y)=>`${$(y.ap)} + ${$(y.debt)} + ${$(y.eq)} = ${$(y.tle)}${Math.abs(y.tle-y.ta)<1e-6?' = total assets. It balances.':''}`)]};
       return {title:`${n}: project two years`,note:'Build the IS, then the CFS, then the BS. It must balance.',
         assumptions:[['Base-year revenue',$(rev0)],['Revenue growth',pct(g,0)+' per year'],['Gross margin',pct(gm,0)],['SG&A',pct(sgaP,0)+' of revenue'],['D&A',$(da)+' per year'],['CapEx',$(cx)+' per year'],['AR / inventory / AP',`${pct(arP,0)} / ${pct(invP,0)} / ${pct(apP,0)} of revenue`],['Interest',pct(rate,0)+' on beginning debt'],['Tax rate',pct(t,0)],['Debt repayment',$(repay)+' per year'],['Dividends','none'],['Base-year balance sheet',`Cash ${$(cash0)} · AR ${$(ar0)} · Inv ${$(inv0)} · PP&E ${$(ppe0)} · AP ${$(ap0)} · Debt ${$(debt0)} · Equity ${$(eq0)}`]],
         tables:[is,cfs,bs],finals:[[0,10,1],[1,9,1],[2,4,1],[2,7,1]],
@@ -1477,9 +1506,9 @@ const IBD = (() => {
       let rev=rev0; const Y=[];
       for(let y=1;y<=5;y++){const rr=rev*(1+g/100), e=rr*m/100, da=rr*daP/100, ebit=e-da, tax=ebit*t/100, nopat=ebit-tax, cx=rr*cxP/100, dn=(rr-rev)*nwcP/100, u=nopat+da-cx-dn, df=1/Math.pow(1+r/100,y), pv=u*df; Y.push({rr,e,da,ebit,tax,nopat,cx,dn,u,df,pv}); rev=rr;}
       const sum=Y.reduce((a,y)=>a+y.pv,0), tv=Y[4].e*exitM, pvtv=tv*Y[4].df, ev=sum+pvtv; if(nd>ev*0.6)nd=Math.max(0,R(ev*0.3,-1)); const eq=ev-nd, price=eq/sh;
-      const row=(label,key,unit,f,x)=>({label,cells:Y.map(y=>C(y[key],unit||'$',f,x))});
-      const proj={name:'Projection ($mm)',cols:yrs(5),rows:[row('Revenue','rr','$','Prior revenue × (1 + growth)'),row('EBITDA','e','$','Revenue × margin'),row('D&A','da','$','Revenue × D&A %'),row('EBIT','ebit','$','EBITDA − D&A'),row('Taxes on EBIT','tax','$','EBIT × tax rate','Unlevered: tax the operating profit as if there were no debt.'),row('NOPAT','nopat','$','EBIT − taxes'),row('CapEx','cx','$','Revenue × CapEx %'),row('Increase in NWC','dn','$','(Revenue − prior revenue) × NWC %'),row('Unlevered FCF','u','$','NOPAT + D&A − CapEx − increase in NWC'),row('Discount factor','df','n','1 ÷ (1 + WACC)^year','Three decimals is fine.'),row('PV of UFCF','pv','$','UFCF × discount factor')]};
-      const val={name:'Valuation ($mm)',cols:['Value'],rows:[{label:'Sum of PV of UFCF',cells:[C(sum,'$','Add the five PVs')]},{label:'Terminal value',cells:[C(tv,'$','Year-5 EBITDA × exit multiple')]},{label:'PV of terminal value',cells:[C(pvtv,'$','TV × year-5 discount factor')]},{label:'Enterprise value',cells:[C(ev,'$','Sum of PVs + PV of TV')]},{label:'Equity value',cells:[C(eq,'$','EV − net debt')]},{label:'Implied share price',cells:[C(price,'$ps','Equity value ÷ diluted shares')]}]};
+      const row=(label,key,unit,f,w)=>({label,cells:Y.map((y,i)=>{const p=i?Y[i-1]:null;return C(y[key],unit||'$',f,w?w(y,i,p):'')})});
+      const proj={name:'Projection ($mm)',cols:yrs(5),rows:[row('Revenue','rr','$','Prior revenue × (1 + growth)',(y,i,p)=>`${$(p?p.rr:rev0)} × ${fnum(1+g/100,2)} = ${$(y.rr)}`),row('EBITDA','e','$','Revenue × margin',(y)=>`${$(y.rr)} × ${pct(m,0)} = ${$(y.e)}`),row('D&A','da','$','Revenue × D&A %',(y)=>`${$(y.rr)} × ${pct(daP,0)} = ${$(y.da)}`),row('EBIT','ebit','$','EBITDA − D&A',(y)=>`${$(y.e)} − ${$(y.da)} = ${$(y.ebit)}`),row('Taxes on EBIT','tax','$','EBIT × tax rate',(y)=>`${$(y.ebit)} × ${pct(t,0)} = ${$(y.tax)}. Unlevered: tax the operating profit as if there were no debt.`),row('NOPAT','nopat','$','EBIT − taxes',(y)=>`${$(y.ebit)} − ${$(y.tax)} = ${$(y.nopat)}`),row('CapEx','cx','$','Revenue × CapEx %',(y)=>`${$(y.rr)} × ${pct(cxP,0)} = ${$(y.cx)}`),row('Increase in NWC','dn','$','(Revenue − prior revenue) × NWC %',(y,i,p)=>`(${$(y.rr)} − ${$(p?p.rr:rev0)}) × ${pct(nwcP,0)} = ${$(y.dn)}`),row('Unlevered FCF','u','$','NOPAT + D&A − CapEx − increase in NWC',(y)=>`${$(y.nopat)} + ${$(y.da)} − ${$(y.cx)} − ${$(y.dn)} = ${$(y.u)}`),row('Discount factor','df','n','1 ÷ (1 + WACC)^year',(y,i)=>`1 ÷ ${fnum(1+r/100,2)}^${i+1} = ${fnum(y.df,3)}`),row('PV of UFCF','pv','$','UFCF × discount factor',(y)=>`${$(y.u)} × ${fnum(y.df,3)} = ${$(y.pv)}`)]};
+      const val={name:'Valuation ($mm)',cols:['Value'],rows:[{label:'Sum of PV of UFCF',cells:[C(sum,'$','Add the five PVs',Y.map(y=>$(y.pv)).join(' + ')+' = '+$(sum))]},{label:'Terminal value',cells:[C(tv,'$','Year-5 EBITDA × exit multiple',`${$(Y[4].e)} × ${x(exitM,0)} = ${$(tv)}`)]},{label:'PV of terminal value',cells:[C(pvtv,'$','TV × year-5 discount factor',`${$(tv)} × ${fnum(Y[4].df,3)} = ${$(pvtv)}`)]},{label:'Enterprise value',cells:[C(ev,'$','Sum of PVs + PV of TV',`${$(sum)} + ${$(pvtv)} = ${$(ev)}`)]},{label:'Equity value',cells:[C(eq,'$','EV − net debt',`${$(ev)} − ${$(nd)} = ${$(eq)}`)]},{label:'Implied share price',cells:[C(price,'$ps','Equity value ÷ diluted shares',`${$(eq)} ÷ ${mm(sh)} = ${ps(price)}`)]}]};
       return {title:`${n}: five-year DCF`,note:'Project, discount, add the terminal value, bridge to a share price.',
         assumptions:[['Base-year revenue',$(rev0)],['Revenue growth',pct(g,0)+' per year'],['EBITDA margin',pct(m,0)],['D&A',pct(daP,0)+' of revenue'],['CapEx',pct(cxP,0)+' of revenue'],['Increase in NWC',pct(nwcP,0)+' of the revenue increase'],['Tax rate',pct(t,0)],['WACC',pct(r,0)],['Terminal value',x(exitM,0)+' year-5 EBITDA (end-of-year discounting)'],['Net debt',$(nd)],['Diluted shares',mm(sh)]],
         tables:[proj,val],finals:[[1,3,0],[1,5,0]],
@@ -1489,16 +1518,16 @@ const IBD = (() => {
     gen(rng){
       const d=mkDeal(rng);
       const rows=[
-        {label:'Offer price per share',cells:[C(d.offer,'$ps','Target price × (1 + premium)')]},
-        {label:'Equity purchase price',cells:[C(d.purchase,'$','Offer price × target shares')]},
-        {label:'New buyer shares issued',cells:[C(d.newSh,'mm','Stock portion ÷ buyer share price (0 if no stock)')]},
-        {label:'After-tax cost of cash',cells:[C(d.costCash,'$','Cash used × rate on cash × (1 − t) (0 if no cash)')]},
-        {label:'After-tax cost of new debt',cells:[C(d.costDebt,'$','Debt raised × rate × (1 − t) (0 if no debt)')]},
-        {label:'After-tax synergies',cells:[C(d.synAt,'$','Synergies × (1 − t) (0 if none)')]},
-        {label:'Pro forma net income',cells:[C(d.pfNI,'$','Buyer NI + target NI + synergies − cost of cash − cost of debt')]},
-        {label:'Pro forma shares',cells:[C(d.pfSh,'mm','Buyer shares + new shares')]},
-        {label:'Pro forma EPS',cells:[C(d.pfEPS,'$ps','Pro forma NI ÷ pro forma shares')]},
-        {label:'Accretion / (dilution)',cells:[C(d.acc,'%','Pro forma EPS ÷ buyer EPS − 1')]}
+        {label:'Offer price per share',cells:[C(d.offer,'$ps','Target price × (1 + premium)',`${ps(d.priceT)} × (1 + ${pct(d.prem,0)}) = ${ps(d.offer)}`)]},
+        {label:'Equity purchase price',cells:[C(d.purchase,'$','Offer price × target shares',`${ps(d.offer)} × ${mm(d.sharesT)} = ${$(d.purchase)}`)]},
+        {label:'New buyer shares issued',cells:[C(d.newSh,'mm','Stock portion ÷ buyer share price (0 if no stock)',d.stockPct?`Stock portion = ${pct(d.stockPct,0)} × ${$(d.purchase)} = ${$(d.stock$)}; ÷ ${ps(d.priceB)} = ${mm(d.newSh)}`:'No stock in the mix, so 0.')]},
+        {label:'After-tax cost of cash',cells:[C(d.costCash,'$','Cash used × rate on cash × (1 − t) (0 if no cash)',d.cashPct?`Cash used = ${pct(d.cashPct,0)} × ${$(d.purchase)} = ${$(d.cash$)}; × ${pct(d.ic,0)} × (1 − ${pct(d.t,0)}) = ${$(d.costCash)}`:'No cash in the mix, so 0.')]},
+        {label:'After-tax cost of new debt',cells:[C(d.costDebt,'$','Debt raised × rate × (1 − t) (0 if no debt)',d.debtPct?`Debt raised = ${pct(d.debtPct,0)} × ${$(d.purchase)} = ${$(d.debt$)}; × ${pct(d.id,0)} × (1 − ${pct(d.t,0)}) = ${$(d.costDebt)}`:'No new debt in the mix, so 0.')]},
+        {label:'After-tax synergies',cells:[C(d.synAt,'$','Synergies × (1 − t) (0 if none)',d.syn?`${$(d.syn)} × (1 − ${pct(d.t,0)}) = ${$(d.synAt)}`:'No synergies assumed, so 0.')]},
+        {label:'Pro forma net income',cells:[C(d.pfNI,'$','Buyer NI + target NI + synergies − cost of cash − cost of debt',`${$(d.niB)} + ${$(d.niT)} + ${$(d.synAt)} − ${$(d.costCash)} − ${$(d.costDebt)} = ${$(d.pfNI)}`)]},
+        {label:'Pro forma shares',cells:[C(d.pfSh,'mm','Buyer shares + new shares',`${mm(d.sharesB)} + ${mm(d.newSh)} = ${mm(d.pfSh)}`)]},
+        {label:'Pro forma EPS',cells:[C(d.pfEPS,'$ps','Pro forma NI ÷ pro forma shares',`${$(d.pfNI)} ÷ ${mm(d.pfSh)} = ${ps(d.pfEPS)}`)]},
+        {label:'Accretion / (dilution)',cells:[C(d.acc,'%','Pro forma EPS ÷ buyer EPS − 1',`${ps(d.pfEPS)} ÷ ${ps(d.epsB)} − 1 = ${pct(d.acc)}`)]}
       ];
       const given=[[`${d.buyer} (buyer): price / shares / NI`,`${ps(d.priceB)} / ${mm(d.sharesB)} / ${$(d.niB)}`],[`${d.target} (target): price / shares / NI`,`${ps(d.priceT)} / ${mm(d.sharesT)} / ${$(d.niT)}`],['Premium',pct(d.prem,0)],['Financing',mixText(d)]];
       if(d.cashPct)given.push(['Interest earned on cash',pct(d.ic,0)]); if(d.debtPct)given.push(['Interest on new debt',pct(d.id,0)]); if(d.syn)given.push(['Pre-tax synergies',$(d.syn)]); given.push(['Tax rate',pct(d.t,0)]);
@@ -2010,6 +2039,191 @@ super_quick:'Interviewers throw quick numbers at you with no calculator. Round, 
 };
 /*__GLOSSARY_END__*/
 
+/*__LESSONS_START__*/
+// Learn mode. Slide kinds: text {h, body}, example {h, intro, rows:[[label, value, work]]} (revealed line by line), check {h, q, options (first is correct), explain}, try {h, body, drill}.
+const LESSONS=[
+{m:'is',title:'The income statement',mins:6,slides:[
+ {t:'text',h:'What it answers',body:`<p>How much did the company earn over a period, and from what? Revenue sits at the top. Costs come off in a fixed order. Net income is what is left for shareholders.</p><p>The order is the whole lesson: <b>operating costs first</b> (what it costs to run the business), <b>financing next</b> (interest on debt), <b>taxes last</b>.</p><p>Every number here is accrual: revenue when earned, costs when incurred, whether or not cash moved. That is why the cash flow statement exists.</p>`},
+ {t:'text',h:'The lines, in order',body:`<table class="ref"><tr><td>Revenue</td><td>Sales recognized when earned</td></tr><tr><td>− COGS</td><td>Direct cost of what was sold</td></tr><tr><td class="t">= Gross profit</td><td>What is left after making the product</td></tr><tr><td>− Operating expenses</td><td>SG&A, R&D; D&A often hidden inside</td></tr><tr><td class="t">= Operating income (EBIT)</td><td>Profit from running the business</td></tr><tr><td>− Interest</td><td>Cost of debt: a financing choice</td></tr><tr><td class="t">= Pretax income</td><td></td></tr><tr><td>− Taxes</td><td>Pretax × tax rate</td></tr><tr><td class="t">= Net income</td><td>To shareholders; goes to the CFS and to retained earnings</td></tr></table><p>Interest sits below EBIT on purpose: two identical businesses with different debt have the same EBIT and different net income.</p>`},
+ {t:'example',h:'Build one, line by line',intro:'Revenue $1,000, COGS $600, operating expenses $200 (excluding D&A), D&A $50, interest $30, tax rate 25%, 45mm shares. Tap to reveal each line.',rows:[
+  ['Gross profit','$400','Revenue − COGS = 1,000 − 600 = 400. Gross margin 40%.'],
+  ['EBITDA','$200','Gross profit − operating expenses = 400 − 200 = 200. Not a GAAP line, but everyone uses it.'],
+  ['EBIT (operating income)','$150','EBITDA − D&A = 200 − 50 = 150. Everything above this line is operating.'],
+  ['Pretax income','$120','EBIT − interest = 150 − 30 = 120. Interest is the first non-operating item.'],
+  ['Taxes','$30','Pretax × 25% = 120 × 0.25 = 30. Taxes are computed after interest, so interest saved 30 × 25% = 7.5 of tax.'],
+  ['Net income','$90','Pretax − taxes = 120 − 30 = 90. Net margin 9%.'],
+  ['EPS','$2.00','Net income ÷ shares = 90 ÷ 45 = 2.00 per share.']]},
+ {t:'text',h:'The two subtotals interviewers care about',body:`<p><b>EBIT</b> is operating profit after every operating cost, including depreciation. <b>EBITDA</b> adds depreciation and amortization back: <code>EBITDA = EBIT + D&A</code>.</p><p>Why EBITDA is everywhere: it ignores how the company is financed (no interest), how it is taxed, and how old its assets are (no depreciation). That makes companies comparable and makes it a rough proxy for operating cash flow.</p><p>Why it is dangerous: a business that must keep buying equipment looks great on EBITDA and poor on cash. That is why EV/EBIT exists too.</p>`},
+ {t:'text',h:'Margins',body:`<p>A margin is a line divided by revenue. From the example: gross margin 400 ÷ 1,000 = <b>40%</b>, EBITDA margin 200 ÷ 1,000 = <b>20%</b>, net margin 90 ÷ 1,000 = <b>9%</b>.</p><p>Margins let you compare a $1bn company with a $100m company. In a comp set, higher margins usually earn a higher multiple because each dollar of revenue produces more profit.</p><p>Watch which margin a question asks for: operating margin uses EBIT, not EBITDA.</p>`},
+ {t:'check',h:'Quick check',q:'Where does interest expense sit, and why?',options:['Below operating income, because it depends on financing rather than operations','Inside operating expenses, because it is a recurring cost','Above gross profit, because lenders are paid before anyone else','It does not appear; only principal repayments are shown'],explain:'Interest is a consequence of capital structure. Keeping it below EBIT lets you compare businesses regardless of how much debt they carry.'},
+ {t:'try',h:'Try it with a coach',body:'Build an income statement with random numbers. The formula stays visible, and "Walk me through" shows the full solution at any point without penalty.',drill:'is_build'}
+]},
+{m:'bs',title:'The balance sheet',mins:6,slides:[
+ {t:'text',h:'A snapshot that always balances',body:`<p>The balance sheet shows what the company owns (assets) and how it paid for it (liabilities and equity) at a single date.</p><p><code>Assets = Liabilities + Shareholders' equity</code> is not a rule someone enforces. It is true by construction: every dollar of assets was funded either by a creditor or by an owner. Equity is simply the leftover claim.</p><p>So if you know total assets and total liabilities, equity is forced: assets − liabilities.</p>`},
+ {t:'text',h:'The layout',body:`<table class="ref"><tr><td class="t">Current assets</td><td>Cash, short-term investments, receivables, inventory, prepaids: turn into cash within a year</td></tr><tr><td class="t">Long-term assets</td><td>PP&E (net of accumulated depreciation), goodwill, intangibles</td></tr><tr><td class="t">Current liabilities</td><td>Payables, accrued expenses, deferred revenue, short-term debt: due within a year</td></tr><tr><td class="t">Long-term liabilities</td><td>Long-term debt, deferred taxes, lease liabilities</td></tr><tr><td class="t">Equity</td><td>Common stock & APIC, retained earnings, treasury stock (negative)</td></tr></table><p>Assets are listed by liquidity, liabilities by maturity. Read it top to bottom and you can reconstruct it from memory.</p>`},
+ {t:'example',h:'Build the totals',intro:'Cash $100, receivables $150, inventory $200, PP&E $800. Payables $120, short-term debt $80, long-term debt $500. Common stock & APIC $300.',rows:[
+  ['Total current assets','$450','Cash + AR + inventory = 100 + 150 + 200 = 450.'],
+  ['Total assets','$1,250','Current assets + PP&E = 450 + 800 = 1,250.'],
+  ['Total current liabilities','$200','AP + short-term debt = 120 + 80 = 200.'],
+  ['Total liabilities','$700','Current liabilities + long-term debt = 200 + 500 = 700.'],
+  ['Shareholders\' equity','$550','Total assets − total liabilities = 1,250 − 700 = 550. Forced by the identity.'],
+  ['Retained earnings','$250','Equity − common stock & APIC = 550 − 300 = 250. Cumulative profits kept in the business.']]},
+ {t:'text',h:'Where the income statement lands',body:`<p>Net income does not vanish at the bottom of the income statement. It is added to <b>retained earnings</b>: <code>RE end = RE start + net income − dividends</code>.</p><p>Buybacks do not touch retained earnings; they show up as treasury stock, a negative line in equity. That is why a company that has bought back more than it ever earned can show <b>negative book equity</b> while being perfectly healthy.</p>`},
+ {t:'text',h:'Working capital and net debt',body:`<p><b>Operating working capital</b> = non-cash current assets − non-debt current liabilities. From the example: AR 150 + inventory 200 − AP 120 = <b>230</b>. When a company grows, this number grows with it, and every dollar of growth in it is cash the company had to put up. That is why it is subtracted in free cash flow.</p><p><b>Net debt</b> = debt − cash = (80 + 500) − 100 = <b>480</b>. Cash could repay debt tomorrow, so valuation uses the net figure.</p>`},
+ {t:'check',h:'Quick check',q:'Deferred revenue is a liability because…',options:['The company has been paid for something it still has to deliver','It will be refunded to customers if they cancel','It is money borrowed from customers at zero interest','All revenue is a liability until the year closes'],explain:'Cash came in first. Until the product or service is delivered, the company owes it. When it delivers, the liability falls and revenue is recognized.'},
+ {t:'try',h:'Try it with a coach',body:'Build a balance sheet from its lines, with the formulas visible.',drill:'bs_build'}
+]},
+{m:'cfs',title:'The cash flow statement',mins:6,slides:[
+ {t:'text',h:'Profit is an opinion, cash is a fact',body:`<p>The income statement books revenue when earned and costs when incurred. Cash moves at different times: customers pay late, inventory is bought before it is sold, equipment is paid for up front and expensed over years.</p><p>The cash flow statement reconciles the two. It starts from net income, undoes everything that was not cash, then adds the investing and financing flows the income statement never sees. The total equals the change in the cash balance.</p>`},
+ {t:'text',h:'Three sections and one rule',body:`<table class="ref"><tr><td class="t">Operating</td><td>Net income + non-cash expenses (D&A, SBC, write-downs) ± working-capital changes</td></tr><tr><td class="t">Investing</td><td>− CapEx, − acquisitions, + asset sales</td></tr><tr><td class="t">Financing</td><td>+ debt raised, − debt repaid, + stock issued, − buybacks, − dividends</td></tr></table><p><b>The sign rule</b> for working capital: an operating <b>asset</b> going up (receivables, inventory) <b>uses</b> cash, so subtract the increase. An operating <b>liability</b> going up (payables, deferred revenue) <b>frees</b> cash, so add the increase.</p>`},
+ {t:'example',h:'Build one',intro:'Net income $90, D&A $50. Receivables rose $20, inventory fell $10, payables rose $15. CapEx $60. Debt repaid $40, dividends $20. Beginning cash $100.',rows:[
+  ['Working-capital adjustments','−$20 + $10 + $15 = +$5','AR up 20 uses cash (−20). Inventory down 10 releases cash (+10). AP up 15 means suppliers are funding the company (+15). Net +5.'],
+  ['Cash from operations','$145','Net income + D&A + working capital = 90 + 50 + 5 = 145.'],
+  ['Cash from investing','−$60','CapEx is cash out: −60.'],
+  ['Cash from financing','−$60','Debt repaid −40 and dividends −20 = −60.'],
+  ['Net change in cash','+$25','145 − 60 − 60 = +25.'],
+  ['Ending cash','$125','Beginning 100 + 25 = 125. This is the cash line on the balance sheet.'],
+  ['Free cash flow','$85','CFO − CapEx = 145 − 60 = 85. What the business generated after reinvesting in itself.']]},
+ {t:'text',h:'Three free cash flows',body:`<p><b>FCF</b> = CFO − CapEx. The simplest and most common.</p><p><b>Unlevered FCF</b> = EBIT × (1 − t) + D&A − CapEx − increase in NWC. Pretends there is no debt, so it belongs to all capital providers. A DCF discounts it at WACC to get enterprise value.</p><p><b>Levered FCF</b> is after interest and required debt repayment: what is left for shareholders. Discount it at the cost of equity to get equity value directly. In an LBO it is the cash that pays down debt.</p>`},
+ {t:'check',h:'Quick check',q:'Inventory rises by $30 during the year. On the cash flow statement…',options:['Cash from operations is reduced by $30','Cash from operations is increased by $30','Cash from investing is reduced by $30','Nothing changes until the inventory is sold'],explain:'Inventory is an operating asset. Buying it used cash that net income never counted, so the increase is subtracted in CFO.'},
+ {t:'try',h:'Try it with a coach',body:'Build a cash flow statement with the sign rule in front of you.',drill:'cfs_build'}
+]},
+{m:'links',title:'How the statements link',mins:7,slides:[
+ {t:'text',h:'The seven links',body:`<ol class="links"><li>Net income → top of the CFS and into retained earnings.</li><li>Non-cash expenses (D&A, SBC, write-downs) → added back in CFO.</li><li>Working-capital changes → adjusted in CFO.</li><li>CapEx → PP&E on the BS; depreciation then reduces PP&E.</li><li>Equity raised or bought back → shareholders' equity.</li><li>Debt raised or repaid → debt on the BS.</li><li>Net change in cash → cash on the BS.</li></ol><p>Memorize these as a path, not a list: start at net income and walk down the CFS; each stop touches the balance sheet.</p>`},
+ {t:'text',h:'The method for any "walk me through"',body:`<p><b>1. Income statement.</b> Find the pretax change. Multiply by (1 − tax rate) for net income. If the item is not an expense (buying inventory, repaying principal, paying a dividend), the IS does not move.</p><p><b>2. Cash flow statement.</b> Start with the net income change. Add back anything non-cash. Adjust working capital with the sign rule. Add investing and financing flows. Sum to the cash change.</p><p><b>3. Balance sheet.</b> Cash from step 2. The other line that moved (PP&E, inventory, debt…). Retained earnings by the net income change.</p><p><b>4. Check.</b> Δassets = Δliabilities + Δequity. If it does not balance, you missed a line.</p>`},
+ {t:'example',h:'Depreciation rises by $10 (40% tax)',intro:'The classic. Watch cash go up even though profit went down.',rows:[
+  ['IS: pretax income','−$10','Depreciation is an operating expense.'],
+  ['IS: net income','−$6','−10 × (1 − 40%) = −6. Taxes fell by 4.'],
+  ['CFS: net income','−$6','Carried down from the income statement.'],
+  ['CFS: add back D&A','+$10','Non-cash: no money left the company.'],
+  ['CFS: net change in cash','+$4','−6 + 10 = +4. Cash rises by the tax saving, 10 × 40%.'],
+  ['BS: PP&E','−$10','Accumulated depreciation grew, so net PP&E fell by the full 10.'],
+  ['BS: cash','+$4','From the CFS.'],
+  ['BS: check','Assets −$6 = Equity −$6','Assets: −10 + 4 = −6. Retained earnings: −6. Liabilities: 0. It balances.']]},
+ {t:'example',h:'Buy $100 of inventory with cash',intro:'An event with no income statement effect.',rows:[
+  ['IS: net income','$0','Nothing is expensed until the inventory is sold (then it becomes COGS).'],
+  ['CFS: inventory change','−$100','Operating asset up: subtract in CFO.'],
+  ['CFS: net change in cash','−$100','Only line that moved.'],
+  ['BS: inventory','+$100','One asset swapped for another.'],
+  ['BS: cash','−$100','Assets net to zero; liabilities and equity untouched. Balanced.']]},
+ {t:'example',h:'Raise $100 of debt at 10%, then one year passes (40% tax)',intro:'Two moments: issuance, then a year of interest.',rows:[
+  ['At issuance: IS','$0','Borrowing is not income.'],
+  ['At issuance: CFS','+$100 financing','Cash +100.'],
+  ['At issuance: BS','Cash +$100, debt +$100','Assets +100 = liabilities +100.'],
+  ['Year 1: IS','Pretax −$10, net income −$6','Interest 100 × 10% = 10; after tax −10 × 0.6 = −6.'],
+  ['Year 1: CFS','Cash −$6','Interest is a real cash cost inside CFO. No add-back.'],
+  ['Year 1: BS','Cash −$6, retained earnings −$6','Debt is unchanged unless principal was repaid. Balanced.']]},
+ {t:'check',h:'Quick check',q:'A $100 share buyback changes…',options:['Cash −100 and equity −100 on the BS; financing −100 on the CFS; nothing on the IS','Net income −100, because the shares are expensed','Cash −100 and debt −100, because buybacks are financed','Only the share count; the statements are unchanged'],explain:'Buybacks are a distribution, not an expense. Treasury stock (negative equity) rises; cash falls. EPS rises later because the count fell, not because profit changed.'},
+ {t:'try',h:'Try it with a coach',body:'Walk through a random transaction with the method in front of you.',drill:'link_walk'}
+]},
+{m:'ev',title:'Equity value and enterprise value',mins:6,slides:[
+ {t:'text',h:'Two values, two questions',body:`<p><b>Equity value</b> answers: what are all the shares worth? Share price × diluted shares. Also called market cap.</p><p><b>Enterprise value</b> answers: what is the whole operating business worth to everyone who funds it, lenders included? Think of buying the entire company debt-free and cash-free.</p><p><code>EV = Equity value − cash + debt + preferred stock + noncontrolling interest</code></p>`},
+ {t:'example',h:'Build the bridge',intro:'Share price $20, diluted shares 100mm, cash $300, debt $800, preferred stock $100.',rows:[
+  ['Equity value','$2,000','20 × 100 = 2,000.'],
+  ['Net debt','$500','Debt − cash = 800 − 300 = 500.'],
+  ['Enterprise value','$2,600','2,000 − 300 + 800 + 100 = 2,600. Lenders and preferred holders have claims on the business too.']]},
+ {t:'text',h:'Why subtract cash, why add the rest',body:`<p>Buy a company for $2,000 that holds $300 of cash and you effectively paid $1,700 for the business: the cash comes with it. So cash reduces EV.</p><p>Debt and preferred stock are claims a buyer must honor, so they add to the price of the business. Noncontrolling interest is added because consolidated EBITDA includes 100% of a subsidiary even when the company owns 80%; the numerator must match.</p><p>Payables, accrued expenses and deferred revenue are <b>not</b> added: they are operating liabilities already inside working capital and EBITDA.</p>`},
+ {t:'example',h:'Diluted shares: the treasury stock method',intro:'Basic shares 100mm. 10mm options with a $12 strike. Share price $20.',rows:[
+  ['Are the options in the money?','Yes','Strike 12 is below the price 20, so holders would exercise.'],
+  ['Proceeds from exercise','$120','10 × 12 = 120 paid to the company.'],
+  ['Shares repurchased with proceeds','6','120 ÷ 20 = 6. TSM assumes the company buys back as many shares as it can at the current price.'],
+  ['Net new shares','4','10 − 6 = 4. Shortcut: 10 × (1 − 12 ÷ 20) = 4.'],
+  ['Diluted shares','104','100 + 4 = 104. Equity value for valuation uses this number.']]},
+ {t:'text',h:'Matching, and what moves what',body:`<p>Pair EV with metrics <b>before interest</b> (revenue, EBITDA, EBIT, unlevered FCF). Pair equity value with metrics <b>after interest</b> (net income, EPS, levered FCF).</p><p>Financing moves do not change EV: issuing stock raises equity value and cash equally; raising debt raises debt and cash equally; dividends and buybacks lower equity value and cash equally. EV changes only when the operating business changes, such as spending cash on a factory.</p>`},
+ {t:'check',h:'Quick check',q:'A company issues $100 of stock and keeps the cash. Enterprise value…',options:['Is unchanged: equity value +100, cash +100','Rises by $100: there is more equity','Falls by $100: there is more cash','Rises by $100 only if the stock was issued above book value'],explain:'EV = equity − cash + debt. The +100 in equity and the +100 in cash cancel. The business itself did not change.'},
+ {t:'try',h:'Try it with a coach',body:'Bridge from equity value to EV and back, with the formula visible.',drill:'ev_bridge'}
+]},
+{m:'mult',title:'Multiples',mins:6,slides:[
+ {t:'text',h:'What a multiple is',body:`<p>A multiple is a price per unit of something: EV per dollar of EBITDA, price per dollar of earnings. It is a compressed DCF. Higher growth, higher margins or lower risk mean investors pay more per dollar of today's metric, so the multiple is higher.</p><p>The only hard rule: the numerator must match the metric. EV with pre-interest metrics, equity value with post-interest metrics.</p>`},
+ {t:'text',h:'Which one, when',body:`<table class="ref"><tr><td>EV/EBITDA</td><td>The default: capital-structure and tax neutral, close to cash flow</td></tr><tr><td>EV/Revenue</td><td>Unprofitable or early-stage companies</td></tr><tr><td>EV/EBIT</td><td>Capital-intensive businesses, where D&A ≈ reinvestment</td></tr><tr><td>P/E</td><td>Mature companies with similar leverage; banks</td></tr><tr><td>P/Book</td><td>Banks and insurers</td></tr><tr><td>EV/EBITDAR</td><td>Retailers, airlines: lease vs own</td></tr><tr><td>P/FFO</td><td>REITs</td></tr></table>`},
+ {t:'example',h:'Compute them',intro:'EV $2,600, equity value $2,000, revenue $1,300, EBITDA $260, net income $125.',rows:[
+  ['EV / EBITDA','10.0x','2,600 ÷ 260 = 10.0x.'],
+  ['EV / Revenue','2.0x','2,600 ÷ 1,300 = 2.0x.'],
+  ['P / E','16.0x','Equity value ÷ net income = 2,000 ÷ 125 = 16.0x. Earnings yield 1 ÷ 16 = 6.25%.']]},
+ {t:'example',h:'Apply a comps multiple',intro:'Peer median EV/EBITDA 9.0x. Target EBITDA $150, cash $50, debt $400, 50mm diluted shares.',rows:[
+  ['Implied EV','$1,350','9.0 × 150 = 1,350.'],
+  ['Implied equity value','$1,000','EV + cash − debt = 1,350 + 50 − 400 = 1,000.'],
+  ['Implied share price','$20.00','1,000 ÷ 50 = 20.00. That is the whole comps method in three lines.']]},
+ {t:'text',h:'Three habits',body:`<p><b>Median, not mean.</b> One peer at 30x drags a mean from 10x to 14x; the median barely moves.</p><p><b>LTM and NTM.</b> Trailing is actual; forward is what valuation is really about. Show both.</p><p><b>Clean the metric.</b> Strip one-time charges and gains so the multiple reflects the ongoing business. Watch companies whose "one-time" items recur every year.</p>`},
+ {t:'check',h:'Quick check',q:'A company has negative EBITDA. Which multiple still works?',options:['EV / Revenue','EV / EBITDA','P / E','EV / EBIT'],explain:'You cannot capitalize a negative number. Revenue is positive, so EV/Revenue is the fallback, along with forward EBITDA once it turns positive.'},
+ {t:'try',h:'Try it with a coach',body:'Apply a comps multiple to reach a share price.',drill:'mult_implied'}
+]},
+{m:'val',title:'Valuation methodologies',mins:5,slides:[
+ {t:'text',h:'Three methods, plus one',body:`<p><b>Comparable companies</b>: what the market pays today for similar businesses. <b>Precedent transactions</b>: what buyers paid to acquire similar businesses. <b>DCF</b>: the present value of the cash flows themselves. <b>LBO analysis</b>: what a private equity buyer could afford to pay.</p><p>Comps and precedents are <b>relative</b> methods. A DCF is <b>intrinsic</b>. Bankers use all of them and triangulate.</p>`},
+ {t:'text',h:'The steps',body:`<p><b>Comps.</b> Pick 5–10 peers (industry, size, growth, margins). Compute each one's equity value, EV and multiples. Look at the 25th, median and 75th percentile. Decide where the target belongs. Apply the multiple to the target's metric, then bridge to equity value and per share.</p><p><b>Precedents.</b> Same shape, but from deals: transaction EV and the multiples paid, plus the premium to the unaffected price. Because buyers pay for control, the output is a <b>control value</b>.</p>`},
+ {t:'example',h:'A takeover, the precedents way',intro:'Unaffected share price $40. Offer $52 per share. 100mm diluted shares. Debt $600, cash $100. EBITDA $475.',rows:[
+  ['Premium','30%','52 ÷ 40 − 1 = 30%. Typical range 20–40%.'],
+  ['Equity purchase price','$5,200','52 × 100 = 5,200.'],
+  ['Transaction EV','$5,700','5,200 + 600 − 100 = 5,700. The buyer assumes the debt and gets the cash.'],
+  ['Multiple paid','12.0x','5,700 ÷ 475 = 12.0x EBITDA. This goes into the precedents comp set.']]},
+ {t:'text',h:'Ranking and the football field',body:`<p>Typical order, low to high: <b>LBO ≈ comps &lt; DCF ≈ precedents</b>. LBO is a floor (sponsors need 20%+ with no synergies). Comps are minority trading prices. Precedents include a control premium. A DCF depends on its assumptions and can land anywhere.</p><p>The <b>football field</b> shows one bar per method plus reference bars (52-week range, analyst targets). A board uses it to see where an offer sits. You triangulate; you never average the bars.</p>`},
+ {t:'check',h:'Quick check',q:'Which method usually produces the highest value, and why?',options:['Precedent transactions, because deal prices include a control premium','Comps, because public markets price in growth','DCF, because it counts cash flows forever','LBO, because leverage magnifies value'],explain:'Buyers pay above market for control and synergies, and precedents capture exactly those prices.'},
+ {t:'try',h:'Try it with a coach',body:'Turn an offer into a premium, a purchase price and a transaction multiple.',drill:'val_premium'}
+]},
+{m:'dcf',title:'DCF',mins:8,slides:[
+ {t:'text',h:'The idea in one line',body:`<p>A business is worth the cash it will generate, discounted for time and risk. Six steps:</p><ol class="links"><li>Project unlevered free cash flow for 5–10 years.</li><li>Compute the discount rate, WACC.</li><li>Compute a terminal value for everything after the projection.</li><li>Discount cash flows and terminal value to today: enterprise value.</li><li>Subtract net debt, preferred and NCI: equity value.</li><li>Divide by diluted shares: implied share price.</li></ol>`},
+ {t:'example',h:'Unlevered free cash flow',intro:'EBIT $150, tax rate 25%, D&A $50, CapEx $60, working capital increased by $10.',rows:[
+  ['Taxes on EBIT','$37.5','150 × 25% = 37.5. Unlevered means we tax operating profit as if there were no debt.'],
+  ['NOPAT','$112.5','150 − 37.5 = 112.5.'],
+  ['Unlevered FCF','$92.5','NOPAT + D&A − CapEx − ΔNWC = 112.5 + 50 − 60 − 10 = 92.5. No interest anywhere: the cost of debt lives in WACC.']]},
+ {t:'example',h:'WACC',intro:'Market cap $2,000, debt $800. Risk-free 4%, beta 1.2, equity risk premium 5.5%. Pre-tax cost of debt 6%, tax 25%.',rows:[
+  ['Cost of equity (CAPM)','10.6%','Rf + β × ERP = 4% + 1.2 × 5.5% = 4% + 6.6% = 10.6%.'],
+  ['After-tax cost of debt','4.5%','6% × (1 − 25%) = 4.5%. Interest is deductible.'],
+  ['Weights','71.4% equity, 28.6% debt','E ÷ (E + D) = 2,000 ÷ 2,800 = 71.4%; debt is the rest.'],
+  ['WACC','8.9%','0.714 × 10.6% + 0.286 × 4.5% = 7.57% + 1.29% = 8.86%.']]},
+ {t:'text',h:'Terminal value, both ways',body:`<p><b>Exit multiple:</b> final-year EBITDA × a multiple from comps. Market-based, common in banking.</p><p><b>Gordon growth:</b> final-year FCF × (1 + g) ÷ (WACC − g), with g near 2–3%. Theoretical.</p><p>Always compute both and cross-check: the growth implied by the exit multiple, and the multiple implied by Gordon growth. If a 10x exit implies 6% growth forever, the multiple is too high. Terminal value is usually 60–80% of the answer, so this is where DCFs go wrong.</p>`},
+ {t:'example',h:'A three-year DCF to a share price',intro:'UFCF $100, $108, $117. WACC 9%: discount factors 0.917, 0.842, 0.772. Year-3 EBITDA $300, exit multiple 9x. Net debt $500. 100mm shares.',rows:[
+  ['PV of the cash flows','$272.9','100 × 0.917 + 108 × 0.842 + 117 × 0.772 = 91.7 + 90.9 + 90.3 = 272.9.'],
+  ['Terminal value','$2,700','300 × 9 = 2,700.'],
+  ['PV of terminal value','$2,084','2,700 × 0.772 = 2,084. Note it is 88% of EV.'],
+  ['Enterprise value','$2,357','272.9 + 2,084 = 2,357.'],
+  ['Equity value','$1,857','2,357 − 500 = 1,857.'],
+  ['Implied share price','$18.57','1,857 ÷ 100 = 18.57.']]},
+ {t:'check',h:'Quick check',q:'WACC goes up by one point. The DCF value…',options:['Falls, because every cash flow and the terminal value are discounted harder','Rises, because a higher WACC means higher expected returns','Is unchanged, because WACC only affects equity value','Falls only if the company has debt'],explain:'Every present value is divided by a bigger number, and the terminal value most of all.'},
+ {t:'try',h:'Try it with a coach',body:'Build a WACC from its parts with the formulas visible.',drill:'dcf_wacc'}
+]},
+{m:'ma',title:'M&A: accretion and dilution',mins:8,slides:[
+ {t:'text',h:'The question a merger model answers',body:`<p>After the deal, is the buyer's EPS higher (accretive) or lower (dilutive) than it would have been alone?</p><p>Five lines of math: <b>purchase price</b> → <b>how it is paid</b> (cash, debt, stock) → <b>cost of each currency</b> → <b>pro forma net income and shares</b> → <b>pro forma EPS</b> versus standalone.</p><p>Each currency has a cost. Cash stops earning interest. Debt costs interest. Stock costs new shares, which dilute. All of them are after tax, because net income is after tax.</p>`},
+ {t:'example',h:'A full deal, every number derived',intro:'Buyer: $66 share price, 120mm shares, net income $660 (EPS $5.50, P/E 12x). Target: $36 share price, 40mm shares, net income $100. Premium 30%. Paid 50% in stock, 50% in cash that earns 3%. Tax 25%. No synergies.',rows:[
+  ['Offer price per share','$46.80','36 × (1 + 30%) = 46.80.'],
+  ['Equity purchase price','$1,872','46.80 × 40 = 1,872.'],
+  ['Stock portion','$936','50% × 1,872 = 936. This is the number that is easy to lose.'],
+  ['New buyer shares','14.18mm','936 ÷ 66 = 14.18. The buyer pays with its own shares at $66 each.'],
+  ['Cash portion','$936','The other 50% × 1,872 = 936.'],
+  ['After-tax cost of cash','$21.06','Interest it stops earning: 936 × 3% = 28.08. After tax: 28.08 × (1 − 25%) = 21.06.'],
+  ['Pro forma net income','$738.94','660 + 100 − 21.06 = 738.94. Buyer plus target, minus the cost of the currency.'],
+  ['Pro forma shares','134.18mm','120 + 14.18 = 134.18. The target\'s 40mm shares are gone: they were bought.'],
+  ['Pro forma EPS','$5.51','738.94 ÷ 134.18 = 5.51.'],
+  ['Accretion','+0.1%','5.51 ÷ 5.50 − 1 = +0.1%. Barely accretive: the cheap cash offsets the dilution from stock.']]},
+ {t:'text',h:'The cost of each currency',body:`<table class="ref"><tr><th>Currency</th><th>After-tax cost</th></tr><tr><td>Cash</td><td>Interest rate on cash × (1 − t)</td></tr><tr><td>Debt</td><td>Interest rate on new debt × (1 − t)</td></tr><tr><td>Stock</td><td>Buyer earnings yield = 1 ÷ buyer P/E</td></tr></table><p>Compare the cost with what you buy: the target's earnings yield at the offer price, net income ÷ purchase price. In the example: 100 ÷ 1,872 = 5.3% bought; cash costs 2.25%, stock costs 1 ÷ 12 = 8.3%. Half cheap, half expensive: roughly breakeven, which is what the math showed.</p><p><b>All-stock shortcut:</b> buyer P/E above the target's P/E at the offer means accretive.</p>`},
+ {t:'text',h:'Synergies, goodwill, and the catch',body:`<p><b>Synergies</b> are extra profit from combining: cost synergies (removing duplication) are believed; revenue synergies (cross-selling) are not. Count them after tax.</p><p><b>Goodwill</b> = purchase price − fair value of the target's net identifiable assets. Write-ups of assets create deferred tax liabilities, which reduce goodwill.</p><p><b>The catch:</b> accretion is not value creation. Borrowing at 5% to buy anything yielding 7% is accretive, even at a terrible price. The real test is price versus intrinsic value plus synergies.</p>`},
+ {t:'check',h:'Quick check',q:'All-stock deal. Buyer trades at 20x earnings, target is bought at 15x. The deal is…',options:['Accretive','Dilutive','Breakeven','Dilutive unless synergies cover the premium'],explain:'The buyer\'s stock costs 1 ÷ 20 = 5% per dollar of earnings; the target yields 1 ÷ 15 = 6.7%. Buying a higher yield with cheaper paper is accretive.'},
+ {t:'try',h:'Try it with a coach',body:'Run a full accretion / dilution with the formulas visible and a walk-through one tap away.',drill:'ma_full'}
+]},
+{m:'lbo',title:'LBO',mins:8,slides:[
+ {t:'text',h:'A house with a mortgage',body:`<p>A sponsor buys a company with mostly borrowed money, uses the company's own cash flow to repay the debt, and sells it a few years later. The equity check is small, so the return on it is large.</p><p>Returns come from three places: <b>debt paydown</b> (value shifts from lenders to equity), <b>EBITDA growth</b>, and <b>multiple expansion</b> (selling at a higher multiple than you paid). Price paid is the lever the sponsor controls most.</p>`},
+ {t:'example',h:'Sources and uses',intro:'Equity purchase price $800, existing debt to refinance $200, fees $30. Lenders provide senior debt $500 and subordinated notes $150.',rows:[
+  ['Total uses','$1,030','800 + 200 + 30 = 1,030. What the deal has to pay for.'],
+  ['Debt sources','$650','500 + 150 = 650.'],
+  ['Sponsor equity (the plug)','$380','1,030 − 650 = 380. Whatever the debt does not cover.'],
+  ['Equity share','37%','380 ÷ 1,030 = 37%. Modern deals run roughly 40–60%; the 1980s ran 10%.']]},
+ {t:'example',h:'The paper LBO',intro:'EBITDA $100 today. Buy at 8x with 5x debt. EBITDA grows 10% a year for 5 years. Free cash flow of $40 a year repays debt. Exit at 8x.',rows:[
+  ['Entry EV','$800','100 × 8 = 800.'],
+  ['Debt raised','$500','5 × 100 = 500.'],
+  ['Sponsor equity','$300','800 − 500 = 300.'],
+  ['Year-5 EBITDA','$161','100 × 1.1^5 = 100 × 1.611 = 161.'],
+  ['Exit EV','$1,288','161 × 8 = 1,288.'],
+  ['Debt at exit','$300','500 − 5 × 40 = 300.'],
+  ['Exit equity','$988','1,288 − 300 = 988.'],
+  ['MOIC','3.3x','988 ÷ 300 = 3.29x.'],
+  ['IRR','≈27%','3.29^(1/5) − 1 = 1.269 − 1 ≈ 27%. Rule of thumb: 3x over 5 years is about 25%.']]},
+ {t:'text',h:'Candidates, debt, and the floor',body:`<p><b>Good candidates:</b> stable cash flows, low capex, strong management, hard assets, a reasonable price, a clear exit. Debt has to be serviced every year, so predictability beats growth.</p><p><b>Debt tranches</b>, safest to riskiest: revolver, senior term loans, senior notes, subordinated or mezzanine (sometimes PIK), then equity. Lenders size debt off EBITDA, typically 4–6x total.</p><p><b>LBO as valuation:</b> solve for the price that still delivers ~20–25% IRR. A sponsor cannot pay more, and strategic buyers with synergies usually can, so it is the floor of the football field.</p>`},
+ {t:'check',h:'Quick check',q:'Same 2.0x multiple of money, but the hold stretches from 3 years to 5. The IRR…',options:['Falls, from about 26% to about 15%','Rises, because more debt is repaid','Stays the same, because MOIC is unchanged','Doubles, because the hold is longer'],explain:'IRR is annualized. 2^(1/3) − 1 ≈ 26%; 2^(1/5) − 1 ≈ 15%. Time is the enemy of IRR, which is why sponsors like early exits and dividend recaps.'},
+ {t:'try',h:'Try it with a coach',body:'Run a paper LBO with the formulas visible.',drill:'lbo_paper'}
+]}
+];
+/*__LESSONS_END__*/
+
 /*__UI_START__*/
 (()=>{
 const E=IBD, F=E.fmt;
@@ -2027,9 +2241,9 @@ const MOCK_SEQ=['super_qa','super_qa','super_quick','super_qa','super_qa','super
 // ---------- progress store (per device) ----------
 const KEY='ibdrills.v1';
 const dkey=(d=new Date())=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-const DEF=()=>({v:1,drills:{},days:{},sessions:0,coins:0,settings:{len:10,keypad:true,final:false,sound:true}});
+const DEF=()=>({v:1,drills:{},days:{},sessions:0,coins:0,lessons:{},settings:{len:10,keypad:true,final:false,sound:true}});
 let ST=load();
-function load(){try{const s=JSON.parse(localStorage.getItem(KEY)||'null');if(s&&s.v===1){s.settings=Object.assign({len:10,keypad:true,final:false,sound:true},s.settings||{});s.drills=s.drills||{};s.days=s.days||{};s.coins=s.coins||0;return s}}catch(e){}return DEF()}
+function load(){try{const s=JSON.parse(localStorage.getItem(KEY)||'null');if(s&&s.v===1){s.settings=Object.assign({len:10,keypad:true,final:false,sound:true},s.settings||{});s.drills=s.drills||{};s.days=s.days||{};s.coins=s.coins||0;s.lessons=s.lessons||{};return s}}catch(e){}return DEF()}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(ST))}catch(e){}}
 function record(id,ok,n){const d=ST.drills[id]||(ST.drills[id]={n:0,ok:0,last:0});d.n+=n;d.ok+=ok;d.last=Date.now();ST.days[dkey()]=(ST.days[dkey()]||0)+n;save()}
 const dstat=id=>ST.drills[id]||{n:0,ok:0,last:0};
@@ -2066,11 +2280,11 @@ function linkTerms(root){
 function showSheet(html){sheet.innerHTML=`<div class="sheetin">${html}<div class="acts"><button class="btn" data-act="closesheet">Close</button></div></div>`;sheet.hidden=false;linkTerms(sheet)}
 function hideSheet(){sheet.hidden=true;sheet.innerHTML=''}
 function showTerm(i){const g=GLOSSARY[i];if(!g)return;const m=g.m&&modById[g.m];showSheet(`<span class="eyebrow">Term</span><h3>${esc(g.t)}</h3><p>${esc(g.d)}</p>${g.f?`<div class="hint mono">${esc(g.f)}</div>`:''}${m?`<button class="link" data-act="notes" data-mod="${m.id}">Read the ${esc(m.name)} notes →</button>`:''}`)}
-function showWhy(){const c=S&&S.cur;if(!c)return;const m=modById[c.d.module];showSheet(`<span class="eyebrow">What this tests</span><h3>${esc(c.d.name)}</h3><p>${esc(WHY[c.d.id]||'')}</p>${c.g.kind==='steps'?'<p class="dimtext">Type an expression if you like: 1250*0.3 or (100-40)*0.75. The keypad has × ÷ ^ and parentheses.</p>':''}<button class="link" data-act="notes" data-mod="${m.id}">Read the ${esc(m.name)} notes →</button>`)}
+function showWhy(){const c=S&&S.cur;if(!c)return;const m=modById[c.d.module];showSheet(`<span class="eyebrow">What this tests</span><h3>${esc(c.d.name)}</h3><p>${esc(WHY[c.d.id]||'')}</p>${c.g.kind==='steps'?'<p class="dimtext">Type an expression if you like: 1250*0.3 or (100-40)*0.75. The keypad has × ÷ ^ and parentheses.</p>':''}${LESSONS.find(l=>l.m===m.id)?`<button class="link" data-act="lesson" data-mod="${m.id}">Open the ${esc(m.name)} lesson →</button><br>`:''}<button class="link" data-act="notes" data-mod="${m.id}">Read the ${esc(m.name)} notes →</button>`)}
 
 // ---------- app state ----------
-let tab='drill', modView=null, S=null, resetArmed=false;
-function go(t,m){tab=t;modView=m||null;S=null;resetArmed=false;hideSheet();const h=t==='drill'?(m?'#m-'+m:'#drill'):'#'+t;if(location.hash!==h){try{history.replaceState(null,'',h)}catch(e){}}render();window.scrollTo(0,0)}
+let tab='drill', modView=null, S=null, resetArmed=false, Lz=null; // Lz = active lesson {m,i,rev,picked}
+function go(t,m){tab=t;modView=m||null;S=null;Lz=null;resetArmed=false;hideSheet();const h=t==='drill'?(m?'#m-'+m:'#drill'):'#'+t;if(location.hash!==h){try{history.replaceState(null,'',h)}catch(e){}}render();window.scrollTo(0,0)}
 function fromHash(){const h=location.hash||'';if(h==='#learn')return go('learn');if(h==='#stats')return go('stats');if(h.startsWith('#m-')&&modById[h.slice(3)])return go('drill',h.slice(3));go('drill')}
 
 // ---------- session ----------
@@ -2085,7 +2299,7 @@ function nextQ(){
   if(g.kind==='model'){const keys=askedCells(S.cur);S.cur.sel=keys[0]||null}
   render();window.scrollTo(0,0);
 }
-function finishQ(ok,n){const c=S.cur;record(c.d.id,ok,n);S.ok+=ok;S.n+=n;S.done.push({name:c.g.title||c.g.front||c.d.name,drill:c.d.name,module:c.d.module,ok,n,id:c.d.id})}
+function finishQ(ok,n){const c=S.cur;if(!S.opts.coach)record(c.d.id,ok,n);S.ok+=ok;S.n+=n;S.done.push({name:c.g.title||c.g.front||c.d.name,drill:c.d.name,module:c.d.module,ok,n,id:c.d.id})}
 function bump(ok,opts){if(ok){S.streak++;S.best=Math.max(S.best,S.streak);const n=S.streak>=10?25:S.streak>=5?20:S.streak>=3?15:10;award(n,opts);if([3,5,10,15,20].includes(S.streak))streakPop(S.streak)}else{S.streak=0;missFx()}}
 function summary(){S.cur=null;render();window.scrollTo(0,0);const pct=S.n?S.ok/S.n:0;if(pct>=0.7){confetti();fanfare()}}
 const fmtTime=ms=>{const s=Math.floor(ms/1000);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};
@@ -2101,12 +2315,13 @@ function gradeModel(c,reveal){const g=c.g;c.grade={};const keys=askedCells(c);ke
 // ---------- rendering ----------
 function render(){
   tabsEl.querySelectorAll('button').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.tab===tab)));
-  tabsEl.hidden=!!(S&&S.cur);
+  tabsEl.hidden=!!(S&&S.cur)||!!Lz;
   const coinPill=`<span class="coin" id="coins"><i></i><span>${F.fnum(ST.coins||0)}</span></span>`;
   if(S&&S.cur){topmeta.innerHTML=`<span class="pill">${S.len?S.i+' / '+S.len:'∞ '+S.i}</span>${S.timed?'<span class="pill" id="timer">0:00</span>':`<span class="pill ${S.streak>=3?'hot':''}">×${S.streak}</span>`}${coinPill}`;}
   else{const sd=streakDays();topmeta.innerHTML=`${sd?`<span class="pill hot">${sd}-day streak</span>`:''}${coinPill}`;}
   if(S&&S.cur)view.innerHTML=renderQ();
   else if(S)view.innerHTML=renderSummary();
+  else if(Lz)view.innerHTML=renderLesson();
   else if(tab==='learn')view.innerHTML=renderLearn();
   else if(tab==='stats')view.innerHTML=renderStats();
   else if(modView)view.innerHTML=renderModule(modView);
@@ -2119,7 +2334,9 @@ function bar(p,cls){return `<span class="bar ${cls||''}"><i style="width:${Math.
 function wsRows(rows){return rows.map(r=>{const v=String(r[1]);if(v.length>34)return `<tr class="g long"><td colspan="2"><small>${esc(r[0])}</small><div>${esc(v)}</div></td></tr>`;return `<tr class="g"><td>${esc(r[0])}</td><td class="v ${v.length>14?'vt':''}">${esc(v)}</td></tr>`}).join('')}
 function renderHome(){
   const groups=GROUPS.map(g=>`<h3 class="eyebrow">${esc(g)}</h3><div class="rows">${E.MODULES.filter(m=>m.group===g).map(m=>{const s=modStats(m.id);return `<button class="mrow" data-mod="${m.id}"><span class="mt"><b>${esc(m.name)}</b><small>${esc(m.blurb)}</small></span><span class="mm">${bar(s.mastery,s.mastery>=80?'good':'')}<span class="mono">${s.mastery}%</span></span></button>`}).join('')}</div>`).join('');
+  const ldone=LESSONS.filter(l=>ST.lessons[l.m]&&ST.lessons[l.m].done).length;
   return `<section class="hero">
+    <button class="big learn" data-act="lessons"><b>Learn</b><small>${ldone?`${ldone} of ${LESSONS.length} lessons done. Pick up where you left off.`:'Start here: ten short lessons with worked examples, then coached practice.'}</small></button>
     <button class="big primary" data-act="random"><b>Random mix</b><small>Every topic, weighted toward what you miss. ${esc(lenLabel())}.</small></button>
     <div class="hero2"><button class="big" data-act="mock"><b>Mock super day</b><small>12 questions, timed: interview Q&A plus quick math.</small></button>
     <button class="big" data-act="buildmod"><b>Build from scratch</b><small>Fill a whole model yourself: LBO, 3 statements, DCF, merger.</small></button></div>
@@ -2132,6 +2349,8 @@ function renderModule(mid){
   let extra='';
   if(mid==='build')extra=`<div class="setting"><span>Mode</span><div class="seg"><button data-final="0" aria-pressed="${!ST.settings.final}">Full grid</button><button data-final="1" aria-pressed="${!!ST.settings.final}">Final answers only</button></div></div><p class="note">Full grid: every cell is checked. Final answers only: the super day version, you do the work on the keypad and enter just the results.</p>`;
   if(mid==='super')extra=`<div class="acts col"><button class="btn primary" data-act="mock">Start a mock super day (12, timed)</button><button class="btn" data-act="notes" data-mod="super">Browse all questions and answers</button></div>`;
+  const les=LESSONS.find(l=>l.m===mid);
+  if(les)extra=`<div class="acts col"><button class="btn learnbtn" data-act="lesson" data-mod="${mid}">${ST.lessons[mid]&&ST.lessons[mid].done?'Review the lesson':'Learn this topic first'} · ${les.mins} min</button></div>`+extra;
   const mainBtn=mid==='super'?'':`<div class="acts col"><button class="btn primary" data-act="drillmod" data-mod="${mid}">${mid==='case'?'Start the case':mid==='build'?'Random model':'Drill '+esc(m.name)+' · '+esc(lenLabel())}</button><button class="btn" data-act="notes" data-mod="${mid}">Read the notes</button></div>`;
   return `<button class="link back" data-act="home">← All topics</button>
   <h2>${esc(m.name)}</h2><p class="lead">${esc(m.blurb)}</p>
@@ -2168,9 +2387,10 @@ function renderSteps(c){
     panel=`<div class="ask"><label for="ans" class="ql">${esc(st.q||st.label)}${c.phase==='retry'?'<span class="retry">Not quite. Once more.</span>':''}</label>
       <div class="inp"><input id="ans" type="text" inputmode="${ST.settings.keypad?'none':'decimal'}" enterkeyhint="go" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="0" value="${esc(c.val||'')}"><span class="unit">${esc(u.hint)}</span></div>
       <div class="calc" id="calc">${c.msg?`<span class="err">${esc(c.msg)}</span>`:calcPreview(c.val||'')}</div>
-      ${(c.hint||c.phase==='retry')&&st.formula?`<div class="hint mono">${esc(st.formula)}</div>`:''}
+      ${(c.hint||c.phase==='retry'||S.opts.coach)&&st.formula?`<div class="hint mono">${esc(st.formula)}</div>`:''}
+      ${S.opts.coach&&c.coached&&c.coached[c.step]?`<div class="fb mixed coachbox"><div class="h">Walk-through</div><div class="x">${st.explain||''}</div></div>`:''}
       ${ST.settings.keypad?keypad():''}
-      <div class="acts"><button class="btn ghost" data-act="hint">${c.hint?'Hide formula':'Formula'}</button><button class="btn primary" data-act="check">Check</button><button class="btn ghost" data-act="reveal">Show</button></div></div>`;
+      <div class="acts">${S.opts.coach?`<button class="btn ghost" data-act="coach">Walk me through</button>`:`<button class="btn ghost" data-act="hint">${c.hint?'Hide formula':'Formula'}</button>`}<button class="btn primary" data-act="check">Check</button><button class="btn ghost" data-act="reveal">Show</button></div></div>`;
   }
   return `<h2 class="qt">${esc(g.title)}</h2>${g.note?`<p class="note">${esc(g.note)}</p>`:''}<table class="ws">${wsRows(g.given)}${doneRows}${curRow}${todo}</table>${panel}`;
 }
@@ -2183,6 +2403,31 @@ function renderModel(c){
   else{const info=c.sel?cellAt(g,c.sel):null;const raw=c.sel?(c.cells[c.sel]||''):'';dock=`<div class="ask"><div class="selinfo">${info?`<b>${esc(info.row.label)}</b><span class="dimtext"> · ${esc(info.tb.cols[info.ci])} · ${esc((E.UNITS[info.cell.unit]||E.UNITS.n).hint)}</span>`:'Tap a cell'}</div><div class="inp"><input id="ans" type="text" inputmode="${ST.settings.keypad?'none':'decimal'}" enterkeyhint="next" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="0" value="${esc(raw)}" ${c.sel?'':'disabled'}><button class="sign next" data-k="→" aria-label="Next cell">→</button></div><div class="calc" id="calc">${calcPreview(raw)}</div>${ST.settings.keypad?keypad():''}<div class="acts"><button class="btn ghost" data-act="showmodel">Show model</button><button class="btn primary" data-act="checkmodel">Check all</button></div></div>`}
   return `<h2 class="qt">${esc(g.title)}</h2><p class="note">${esc(g.note)}${c.final?' <b>Final answers only.</b>':''}</p>${assume}${tables}${dock}`;
 }
+function renderLesson(){
+  const les=LESSONS.find(l=>l.m===Lz.m);const sl=les.slides[Lz.i];const n=les.slides.length;const m=modById[les.m];
+  const dots=les.slides.map((x,i)=>`<i class="${i<Lz.i?'done':i===Lz.i?'cur':''}"></i>`).join('');
+  let body='',nav='';
+  const back=Lz.i>0?`<button class="btn ghost" data-act="lback">Back</button>`:`<button class="btn ghost" data-act="lexit">Exit</button>`;
+  const next=`<button class="btn primary" data-act="lnext">${Lz.i+1<n?'Next':'Done'}</button>`;
+  if(sl.t==='text'){body=`<div class="lcard"><h2 class="qt nolink">${esc(sl.h)}</h2><div class="lbody">${sl.body}</div></div>`;nav=back+next}
+  else if(sl.t==='example'){
+    const rows=sl.rows.slice(0,Lz.rev).map(r=>`<tr class="done ok"><td>${esc(r[0])}<br><small class="work">${esc(r[2])}</small></td><td class="v">${esc(r[1])}</td></tr>`).join('');
+    const todo=sl.rows.slice(Lz.rev,Lz.rev+1).map(r=>`<tr class="cur"><td>${esc(r[0])}</td><td class="v">?</td></tr>`).join('');
+    const all=Lz.rev>=sl.rows.length;
+    body=`<div class="lcard"><h2 class="qt nolink">${esc(sl.h)}</h2><p class="lintro">${esc(sl.intro)}</p><table class="ws">${rows}${todo}</table></div>`;
+    nav=back+(all?next:`<button class="btn primary" data-act="lreveal">Reveal next line</button>`);
+  }
+  else if(sl.t==='check'){
+    const ans=Lz.picked>=0;const opts=Lz.opts.map((o,i)=>{let cls='opt';if(ans){if(i===Lz.answer)cls+=' ok';else if(i===Lz.picked)cls+=' miss';else cls+=' dimmed'}return `<button class="${cls}" data-lopt="${i}" ${ans?'disabled':''}><span class="k">${ABC[i]}</span><span>${esc(o)}</span></button>`}).join('');
+    body=`<div class="lcard"><span class="eyebrow">${esc(sl.h)}</span><h2 class="qt nolink">${esc(sl.q)}</h2><div class="opts">${opts}</div>${ans?`<div class="fb ${Lz.picked===Lz.answer?'':'miss'}"><div class="h">${Lz.picked===Lz.answer?'Right.':'Not quite.'}</div><div class="x">${esc(sl.explain)}</div></div>`:''}</div>`;
+    nav=back+(ans?next:'');
+  }
+  else { body=`<div class="lcard"><h2 class="qt nolink">${esc(sl.h)}</h2><div class="lbody"><p>${esc(sl.body)}</p></div></div>`;nav=back+`<button class="btn primary" data-act="ltry" data-ldrill="${sl.drill}">Try it coached</button><button class="btn" data-act="lnext">Finish lesson</button>`}
+  return `<div class="shead"><button class="x" data-act="lexit" aria-label="Exit lesson">✕</button><span class="ldots">${dots}</span><span class="pill">${Lz.i+1} / ${n}</span></div><span class="eyebrow">Lesson · ${esc(m.name)}</span>${body}<div class="acts lnav">${nav}</div>`;
+}
+function openLesson(mid){const les=LESSONS.find(l=>l.m===mid);if(!les)return;S=null;tab='learn';modView=null;hideSheet();const st=ST.lessons[mid]||{};Lz={m:mid,i:st.done?0:Math.min(st.slide||0,les.slides.length-1),rev:0,picked:-1};prepSlide();render();window.scrollTo(0,0)}
+function prepSlide(){const les=LESSONS.find(l=>l.m===Lz.m);const sl=les.slides[Lz.i];Lz.rev=0;Lz.picked=-1;if(sl.t==='check'){const order=sl.options.map((o,i)=>i).sort(()=>Math.random()-0.5);Lz.opts=order.map(i=>sl.options[i]);Lz.answer=order.indexOf(0)}ST.lessons[Lz.m]=Object.assign({},ST.lessons[Lz.m]||{},{slide:Lz.i});save()}
+function lessonNext(){const les=LESSONS.find(l=>l.m===Lz.m);if(Lz.i+1<les.slides.length){Lz.i++;prepSlide();render();window.scrollTo(0,0)}else{ST.lessons[Lz.m]={done:true,slide:0};save();award(50);fanfare();const m=Lz.m;Lz=null;go('learn');const el=q(`[data-act="lesson"][data-mod="${m}"]`);if(el)el.scrollIntoView({block:'center'})}}
 function renderChoice(c){
   const g=c.g, ans=c.picked>=0;
   const opts=g.options.map((o,i)=>{let cls='opt';if(ans){if(i===g.answer)cls+=' ok';else if(i===c.picked)cls+=' miss';else cls+=' dimmed'}return `<button class="${cls}" data-opt="${i}" ${ans?'disabled':''}><span class="k">${ABC[i]}</span><span>${o}</span></button>`}).join('');
@@ -2208,7 +2453,7 @@ function renderSummary(){
   const weak=Object.entries(byMod).map(([m,v])=>({m,acc:v.n?v.ok/v.n:1,n:v.n})).filter(w=>w.n).sort((a,b)=>a.acc-b.acc);
   const rows=S.done.map(d=>`<div class="srow"><span class="mt"><b>${esc(d.drill)}</b><small>${esc(modById[d.module].short)} · ${esc(d.name)}</small></span><span class="mono ${d.ok===d.n?'good':d.ok/d.n<0.6?'weak':''}">${d.ok}/${d.n}</span></div>`).join('');
   const weakBtn=weak.length&&weak[0].acc<0.8&&weak[0].m!=='super'?`<button class="btn" data-act="drillmod" data-mod="${weak[0].m}">Drill ${esc(modById[weak[0].m].name)} next</button>`:'';
-  return `<section class="sum"><span class="eyebrow">${esc(S.label)} · done</span><div class="score"><span class="big mono">${pct}%</span><span class="sub">${S.ok} of ${S.n} right${S.timed?'':' on the first try'}${S.best>=3?` · best streak ×${S.best}`:''}</span><span class="earned"><i class="fcoin" style="position:static;animation:none"></i>+${F.fnum(S.coins||0)} coins</span></div>
+  return `<section class="sum"><span class="eyebrow">${esc(S.label)} · done</span><div class="score"><span class="big mono">${pct}%</span><span class="sub">${S.ok} of ${S.n} right${S.timed?'':S.opts.coach?' unaided (coached answers do not count toward mastery)':' on the first try'}${S.best>=3?` · best streak ×${S.best}`:''}</span><span class="earned"><i class="fcoin" style="position:static;animation:none"></i>+${F.fnum(S.coins||0)} coins</span></div>
   <div class="acts col"><button class="btn primary" data-act="again">Again</button>${weakBtn}<button class="btn ghost" data-act="home">Home</button></div></section>
   <h3 class="eyebrow">This session</h3><div class="rows">${rows||'<p class="note">Nothing answered yet.</p>'}</div>`;
 }
@@ -2216,7 +2461,9 @@ function renderLearn(){
   const cats=[...new Set(E.SUPERQ.map(s=>s.c))];
   const superSec=`<details class="sec" id="n-super"><summary><span>Super day Q&A</span><small>${E.SUPERQ.length} likely questions with model answers and follow-ups.</small></summary><div class="secb">${cats.map(cat=>`<h4>${esc(cat)}</h4>${E.SUPERQ.filter(s=>s.c===cat).map(s=>`<details class="qa"><summary>${esc(s.q)}</summary><p>${esc(s.a)}</p>${s.p?`<p class="probe"><b>Follow-up:</b> ${esc(s.p)}</p>`:''}</details>`).join('')}`).join('')}<div class="acts"><button class="btn primary" data-act="mock">Run a mock</button></div></div></details>`;
   const glossSec=`<details class="sec" id="n-gloss"><summary><span>Glossary</span><small>${GLOSSARY.length} terms. Tap one, or tap any underlined word anywhere in the app.</small></summary><div class="secb"><div class="gl">${GLOSSARY.map((g,i)=>`<button class="chip" data-gl="${i}">${esc(g.t)}</button>`).join('')}</div></div></details>`;
-  return `<h2>Notes</h2><p class="lead">The cheat sheet, reorganized around what the drills test. Open a topic, read it, then drill it.</p>`+LEARN.map(sec=>{const m=modById[sec.m];if(!m)return '';return `<details class="sec" id="n-${m.id}"><summary><span>${esc(m.name)}</span><small>${esc(m.blurb)}</small></summary><div class="secb">${sec.html}<div class="acts"><button class="btn primary" data-act="drillmod" data-mod="${m.id}">Drill this</button></div></div></details>`}).join('')+superSec+glossSec;
+  const lessonRows=LESSONS.map((l,i)=>{const st=ST.lessons[l.m]||{};const prog=st.done?100:st.slide?Math.round(st.slide/l.slides.length*100):0;return `<button class="mrow lrow ${st.done?'ldone':''}" data-act="lesson" data-mod="${l.m}"><span class="lnum">${st.done?'✓':i+1}</span><span class="mt"><b>${esc(l.title)}</b><small>${l.slides.length} slides · ${l.mins} min${st.done?' · done':st.slide?' · in progress':''}</small></span><span class="mm">${bar(prog,st.done?'good':'')}</span></button>`}).join('');
+  return `<h2>Learn</h2><p class="lead">Lessons first: each one explains the concept, walks a worked example line by line, checks you, then hands you a coached drill.</p><div class="rows">${lessonRows}</div>
+  <h3 class="eyebrow">Reference notes</h3><p class="note">The cheat sheet, reorganized around what the drills test.</p>`+LEARN.map(sec=>{const m=modById[sec.m];if(!m)return '';return `<details class="sec" id="n-${m.id}"><summary><span>${esc(m.name)}</span><small>${esc(m.blurb)}</small></summary><div class="secb">${sec.html}<div class="acts"><button class="btn primary" data-act="drillmod" data-mod="${m.id}">Drill this</button></div></div></details>`}).join('')+superSec+glossSec;
 }
 function renderStats(){
   const reps=totalReps(), sd=streakDays(), todayN=ST.days[dkey()]||0;
@@ -2240,7 +2487,7 @@ function afterRender(){const inp=q('#ans');if(inp&&!inp.disabled&&!ST.settings.k
 // ---------- actions ----------
 function startRandom(){startSession({label:'Random mix',pool:E.DRILLS.filter(d=>!['case','build','super'].includes(d.module)),len:ST.settings.len})}
 function startModule(mid){const pool=E.DRILLS.filter(d=>d.module===mid);const one=mid==='case'||mid==='build';startSession({label:modById[mid].name,pool,len:one?1:ST.settings.len,back:{t:'drill',m:mid},opts:{final:!!ST.settings.final}})}
-function startDrill(id){const d=E.byId[id];const one=d.kind==='model'||d.id==='case_full';startSession({label:d.name,pool:[d],len:one?1:ST.settings.len,back:{t:'drill',m:d.module},opts:{final:!!ST.settings.final}})}
+function startDrill(id,coach){const d=E.byId[id];const one=d.kind==='model'||d.id==='case_full';startSession({label:(coach?'Coached: ':'')+d.name,pool:[d],len:one?1:(coach?3:ST.settings.len),back:coach?{t:'learn'}:{t:'drill',m:d.module},opts:{final:!!ST.settings.final,coach:!!coach}})}
 function startMock(){startSession({label:'Mock super day',seq:MOCK_SEQ,timed:true,back:{t:'drill'}})}
 function curBuf(c){return c.g.kind==='model'?(c.sel?(c.cells[c.sel]||''):''):(c.val||'')}
 function setBuf(c,buf){if(c.g.kind==='model'){if(c.sel)c.cells[c.sel]=buf}else c.val=buf}
@@ -2252,7 +2499,7 @@ function checkStep(){
   const r=E.checkNum(st,raw);
   if(r.bad){c.msg=raw?'That is not a number yet.':'Enter a number.';render();return}
   c.msg='';
-  if(r.ok){c.results[c.step]=c.tries===0;bump(c.tries===0);c.phase='fb';}
+  if(r.ok){const coached=!!(c.coached&&c.coached[c.step]);c.results[c.step]=c.tries===0&&!coached;if(coached){award(5)}else bump(c.tries===0);c.phase='fb';}
   else if(c.tries===0){c.tries=1;c.phase='retry';}
   else {c.results[c.step]=false;bump(false);c.phase='fb';}
   render();
@@ -2282,6 +2529,16 @@ document.addEventListener('click',e=>{
   if(b.dataset.len!=null){ST.settings.len=+b.dataset.len;save();render();return}
   if(b.dataset.kp!=null){ST.settings.keypad=b.dataset.kp==='1';save();render();return}
   if(b.dataset.final!=null){ST.settings.final=b.dataset.final==='1';save();render();return}
+  if(act==='lessons'){go('learn');return}
+  if(act==='lesson'){openLesson(b.dataset.mod);return}
+  if(Lz){
+    if(act==='lexit'){Lz=null;go('learn');return}
+    if(act==='lback'){if(Lz.i>0){Lz.i--;prepSlide();render();window.scrollTo(0,0)}return}
+    if(act==='lnext'){lessonNext();return}
+    if(act==='lreveal'){Lz.rev++;render();const rows=document.querySelectorAll('.ws tr.done');const last=rows[rows.length-1];if(last)try{last.scrollIntoView({block:'center',behavior:'smooth'})}catch(e){}return}
+    if(b.dataset.lopt!=null&&Lz.picked<0){Lz.picked=+b.dataset.lopt;if(Lz.picked===Lz.answer){award(10)}else missFx();render();return}
+    if(act==='ltry'){ST.lessons[Lz.m]={done:true,slide:0};save();const d=b.dataset.ldrill;Lz=null;startDrill(d,true);return}
+  }
   if(act==='random')return startRandom();
   if(act==='mock')return startMock();
   if(act==='buildmod')return go('drill','build');
@@ -2299,6 +2556,7 @@ document.addEventListener('click',e=>{
   if(c.g.kind==='steps'){
     if(act==='check')return checkStep();
     if(act==='hint'){c.hint=!c.hint;render();return}
+    if(act==='coach'){c.coached=c.coached||{};c.coached[c.step]=true;render();return}
     if(act==='reveal'){c.results[c.step]=false;bump(false);c.phase='fb';render();return}
     if(act==='nextstep')return nextStep();
   }
